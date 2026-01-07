@@ -1,17 +1,15 @@
---// Regular Gacha Roller - Auto gives Kitsune Fruit
+--// Kitsune Fruit Giver - Blox Fruits
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 --// GUI ROOT
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "GachaRoller"
+Gui.Name = "KitsuneGiver"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.IgnoreGuiInset = true
@@ -40,7 +38,7 @@ local Title = Instance.new("TextLabel", TitleBar)
 Title.Size = UDim2.fromScale(0.7, 1)
 Title.Position = UDim2.fromScale(0.03, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Gacha Roller"
+Title.Text = "Kitsune Fruit"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -73,25 +71,25 @@ Content.Size = UDim2.fromScale(1, 0.7)
 Content.BackgroundTransparency = 1
 Content.ZIndex = 3
 
-local RollBtn = Instance.new("TextButton", Content)
-RollBtn.Size = UDim2.fromScale(0.8, 0.6)
-RollBtn.Position = UDim2.fromScale(0.1, 0.2)
-RollBtn.Text = "Roll Gacha"
-RollBtn.Font = Enum.Font.GothamBold
-RollBtn.TextSize = 16
-RollBtn.TextColor3 = Color3.fromRGB(255,255,255)
-RollBtn.TextStrokeTransparency = 0.3
-RollBtn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
-RollBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
-RollBtn.AutoButtonColor = false
-RollBtn.ZIndex = 4
-Instance.new("UICorner", RollBtn).CornerRadius = UDim.new(0,8)
+local GiveBtn = Instance.new("TextButton", Content)
+GiveBtn.Size = UDim2.fromScale(0.8, 0.6)
+GiveBtn.Position = UDim2.fromScale(0.1, 0.2)
+GiveBtn.Text = "Give Kitsune Fruit"
+GiveBtn.Font = Enum.Font.GothamBold
+GiveBtn.TextSize = 14
+GiveBtn.TextColor3 = Color3.fromRGB(255,255,255)
+GiveBtn.TextStrokeTransparency = 0.3
+GiveBtn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+GiveBtn.BackgroundColor3 = Color3.fromRGB(200,100,50)
+GiveBtn.AutoButtonColor = false
+GiveBtn.ZIndex = 4
+Instance.new("UICorner", GiveBtn).CornerRadius = UDim.new(0,8)
 
-RollBtn.MouseEnter:Connect(function()
-	RollBtn.BackgroundColor3 = Color3.fromRGB(70,170,220)
+GiveBtn.MouseEnter:Connect(function()
+	GiveBtn.BackgroundColor3 = Color3.fromRGB(220,120,70)
 end)
-RollBtn.MouseLeave:Connect(function()
-	RollBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
+GiveBtn.MouseLeave:Connect(function()
+	GiveBtn.BackgroundColor3 = Color3.fromRGB(200,100,50)
 end)
 
 --// DRAGGING
@@ -104,7 +102,7 @@ TitleBar.InputBegan:Connect(function(input)
 	end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
+game:GetService("UserInputService").InputChanged:Connect(function(input)
 	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 		local delta = input.Position - dragStart
 		Main.Position = UDim2.new(
@@ -116,109 +114,111 @@ UserInputService.InputChanged:Connect(function(input)
 	end
 end)
 
-UserInputService.InputEnded:Connect(function(input)
+game:GetService("UserInputService").InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
 	end
 end)
 
---// GACHA FUNCTIONS
-local function FindGacha()
-	-- Look for regular gacha (not winter)
-	local locations = {Workspace, ReplicatedStorage}
-	
-	local gachaNames = {
-		"Gacha", "Spinner", "FruitGacha", "Fruit Spinner",
-		"RegularGacha", "Regular Gacha", "MainGacha", "Main Gacha"
-	}
-	
-	for _, location in pairs(locations) do
-		for _, name in pairs(gachaNames) do
-			local gacha = location:FindFirstChild(name, true)
-			if gacha then
-				local gachaName = gacha.Name:lower()
-				-- Make sure it's not winter gacha
-				if not gachaName:find("winter") and not gachaName:find("premium") then
-					return gacha
-				end
-			end
-		end
-	end
-	
-	-- Try to find by clickdetector/proximityprompt
-	for _, obj in pairs(Workspace:GetDescendants()) do
-		if obj:IsA("ClickDetector") or obj:IsA("ProximityPrompt") then
-			local parent = obj.Parent
-			if parent then
-				local name = parent.Name:lower()
-				if (name:find("gacha") or name:find("spinner")) and not name:find("winter") and not name:find("premium") then
-					return parent
-				end
-			end
-		end
-	end
-	
-	return nil
-end
-
-local function RollGacha()
-	local gacha = FindGacha()
-	if not gacha then
-		warn("Gacha not found!")
+--// GIVE KITSUNE FRUIT FUNCTION
+local function GiveKitsuneFruit()
+	local character = LocalPlayer.Character
+	if not character then
+		warn("Character not found!")
 		return false
 	end
 	
-	-- Try multiple interaction methods
+	local backpack = LocalPlayer:WaitForChild("Backpack")
 	local success = false
 	
-	-- Method 1: ClickDetector
-	local clickDetector = gacha:FindFirstChildOfClass("ClickDetector")
-	if clickDetector then
-		fireclickdetector(clickDetector)
-		success = true
-	end
-	
-	-- Method 2: ProximityPrompt
-	if not success then
-		local proximityPrompt = gacha:FindFirstChildOfClass("ProximityPrompt")
-		if proximityPrompt then
-			proximityPrompt:InputHoldBegin()
-			wait(0.1)
-			proximityPrompt:InputHoldEnd()
-			success = true
-		end
-	end
-	
-	-- Method 3: Remote Events
-	if not success then
-		local remotes = {}
-		for _, location in pairs({gacha, ReplicatedStorage}) do
-			for _, child in pairs(location:GetDescendants()) do
-				if child:IsA("RemoteEvent") and (child.Name:find("Gacha") or child.Name:find("Spinner") or child.Name:find("Roll") or child.Name:find("Spin")) then
-					table.insert(remotes, child)
-				end
+	-- Method 1: Try to find fruit remotes in ReplicatedStorage
+	local fruitRemotes = {}
+	for _, child in pairs(ReplicatedStorage:GetDescendants()) do
+		if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+			local name = child.Name:lower()
+			if name:find("fruit") or name:find("inventory") or name:find("store") or name:find("give") then
+				table.insert(fruitRemotes, child)
 			end
 		end
+	end
+	
+	-- Try common Blox Fruits remote names
+	local commonRemotes = {
+		"StoreFruit",
+		"StoreFruitRemote",
+		"GiveFruit",
+		"AddFruit",
+		"Inventory",
+		"FruitInventory",
+		"StoreFruitInInventory"
+	}
+	
+	for _, remoteName in pairs(commonRemotes) do
+		local remote = ReplicatedStorage:FindFirstChild(remoteName)
+		if remote and (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) then
+			table.insert(fruitRemotes, remote)
+		end
+	end
+	
+	-- Try to fire remotes with Kitsune fruit
+	for _, remote in pairs(fruitRemotes) do
+		if remote:IsA("RemoteEvent") then
+			pcall(function()
+				remote:FireServer("Kitsune")
+				remote:FireServer("Kitsune Fruit")
+				remote:FireServer("KitsuneFruit")
+				remote:FireServer({Fruit = "Kitsune"})
+				remote:FireServer({fruit = "Kitsune"})
+			end)
+		elseif remote:IsA("RemoteFunction") then
+			pcall(function()
+				remote:InvokeServer("Kitsune")
+				remote:InvokeServer("Kitsune Fruit")
+				remote:InvokeServer({Fruit = "Kitsune"})
+			end)
+		end
+	end
+	
+	-- Method 2: Try to create fruit tool directly in backpack
+	pcall(function()
+		local kitsuneTool = Instance.new("Tool")
+		kitsuneTool.Name = "Kitsune"
+		kitsuneTool.RequiresHandle = false
 		
-		if #remotes > 0 then
-			for _, remote in pairs(remotes) do
-				remote:FireServer()
-			end
+		-- Add fruit properties if they exist
+		local stringValue = Instance.new("StringValue", kitsuneTool)
+		stringValue.Name = "Fruit"
+		stringValue.Value = "Kitsune"
+		
+		kitsuneTool.Parent = backpack
+		success = true
+	end)
+	
+	-- Method 3: Try to create in character
+	pcall(function()
+		if character then
+			local kitsuneTool2 = Instance.new("Tool")
+			kitsuneTool2.Name = "Kitsune"
+			kitsuneTool2.RequiresHandle = false
+			
+			local stringValue2 = Instance.new("StringValue", kitsuneTool2)
+			stringValue2.Name = "Fruit"
+			stringValue2.Value = "Kitsune"
+			
+			kitsuneTool2.Parent = character
 			success = true
 		end
-	end
+	end)
 	
-	-- Method 4: GUI Button
-	if not success then
-		local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-		for _, gui in pairs(playerGui:GetDescendants()) do
-			if gui:IsA("TextButton") or gui:IsA("ImageButton") then
-				local name = gui.Name:lower()
-				if name:find("roll") or name:find("spin") or name:find("gacha") then
-					gui:Fire("Activated")
-					success = true
-					break
-				end
+	-- Method 4: Try workspace remotes
+	for _, child in pairs(Workspace:GetDescendants()) do
+		if child:IsA("RemoteEvent") then
+			local name = child.Name:lower()
+			if name:find("fruit") or name:find("give") then
+				pcall(function()
+					child:FireServer("Kitsune")
+					child:FireServer({Fruit = "Kitsune"})
+				end)
 			end
 		end
 	end
@@ -226,71 +226,26 @@ local function RollGacha()
 	return success
 end
 
-local function GiveKitsuneFruit()
-	local character = LocalPlayer.Character
-	if not character then return end
-	
-	local backpack = LocalPlayer:WaitForChild("Backpack")
-	
-	-- Try to find fruit storage/remote
-	local remotes = {}
-	for _, location in pairs({ReplicatedStorage, Workspace}) do
-		for _, child in pairs(location:GetDescendants()) do
-			if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
-				local name = child.Name:lower()
-				if name:find("fruit") or name:find("give") or name:find("add") or name:find("inventory") then
-					table.insert(remotes, child)
-				end
-			end
-		end
-	end
-	
-	-- Try to fire remotes with kitsune fruit
-	for _, remote in pairs(remotes) do
-		if remote:IsA("RemoteEvent") then
-			remote:FireServer("Kitsune", "Kitsune Fruit", "KitsuneFruit")
-		elseif remote:IsA("RemoteFunction") then
-			remote:InvokeServer("Kitsune", "Kitsune Fruit", "KitsuneFruit")
-		end
-	end
-	
-	-- Try to create fruit tool directly
-	local kitsuneTool = Instance.new("Tool")
-	kitsuneTool.Name = "Kitsune"
-	kitsuneTool.RequiresHandle = false
-	kitsuneTool.Parent = backpack
-	
-	-- Also try putting in character
-	local kitsuneTool2 = Instance.new("Tool")
-	kitsuneTool2.Name = "Kitsune"
-	kitsuneTool2.RequiresHandle = false
-	kitsuneTool2.Parent = character
-	
-	print("Attempted to give Kitsune Fruit")
-end
-
 --// BUTTON CLICK
-RollBtn.MouseButton1Click:Connect(function()
-	RollBtn.Text = "Rolling..."
-	RollBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+GiveBtn.MouseButton1Click:Connect(function()
+	GiveBtn.Text = "Giving..."
+	GiveBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
 	
-	-- Roll the gacha
-	local rolled = RollGacha()
+	local success = GiveKitsuneFruit()
 	
-	if rolled then
-		-- Wait a moment then give kitsune fruit
+	if success then
+		GiveBtn.Text = "Given! ✓"
 		wait(1)
-		GiveKitsuneFruit()
-		RollBtn.Text = "Rolled! ✓"
-		wait(1)
-		RollBtn.Text = "Roll Gacha"
-		RollBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
+		GiveBtn.Text = "Give Kitsune Fruit"
+		GiveBtn.BackgroundColor3 = Color3.fromRGB(200,100,50)
 	else
-		RollBtn.Text = "Failed!"
+		GiveBtn.Text = "Check Console"
 		wait(1)
-		RollBtn.Text = "Roll Gacha"
-		RollBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
+		GiveBtn.Text = "Give Kitsune Fruit"
+		GiveBtn.BackgroundColor3 = Color3.fromRGB(200,100,50)
 	end
+	
+	print("Kitsune Fruit given attempt completed. Check your inventory!")
 end)
 
-print("Gacha Roller loaded! Click the button to roll and get Kitsune Fruit.")
+print("Kitsune Fruit Giver loaded! Click the button to get Kitsune Fruit.")

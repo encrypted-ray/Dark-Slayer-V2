@@ -66,48 +66,68 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.ZIndex = 10
 
---// CLOSE BUTTON (Material Design Icon Button)
+--// WINDOW CONTROLS (redz Hub Style)
+local MinimizeBtn = Instance.new("TextButton", TitleBar)
+MinimizeBtn.Size = UDim2.fromScale(0.04, 0.7)
+MinimizeBtn.Position = UDim2.fromScale(0.92, 0.15)
+MinimizeBtn.Text = "—"
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 16
+MinimizeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+MinimizeBtn.BorderSizePixel = 0
+MinimizeBtn.AutoButtonColor = false
+MinimizeBtn.ZIndex = 10
+Instance.new("UICorner", MinimizeBtn).CornerRadius = UDim.new(0,4)
+
+local MaximizeBtn = Instance.new("TextButton", TitleBar)
+MaximizeBtn.Size = UDim2.fromScale(0.04, 0.7)
+MaximizeBtn.Position = UDim2.fromScale(0.94, 0.15)
+MaximizeBtn.Text = "□"
+MaximizeBtn.Font = Enum.Font.GothamBold
+MaximizeBtn.TextSize = 14
+MaximizeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+MaximizeBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+MaximizeBtn.BorderSizePixel = 0
+MaximizeBtn.AutoButtonColor = false
+MaximizeBtn.ZIndex = 10
+Instance.new("UICorner", MaximizeBtn).CornerRadius = UDim.new(0,4)
+
 local Close = Instance.new("TextButton", TitleBar)
-Close.Size = UDim2.fromScale(0.08, 0.6)
-Close.Position = UDim2.fromScale(0.9, 0.2)
+Close.Size = UDim2.fromScale(0.04, 0.7)
+Close.Position = UDim2.fromScale(0.96, 0.15)
 Close.Text = "✕"
-Close.Font = Enum.Font.Gotham
-Close.TextSize = 20
+Close.Font = Enum.Font.GothamBold
+Close.TextSize = 16
 Close.TextColor3 = Color3.fromRGB(255,255,255)
-Close.BackgroundColor3 = Color3.fromRGB(0,0,0)
-Close.BackgroundTransparency = 1
+Close.BackgroundColor3 = Color3.fromRGB(200,50,50)
 Close.BorderSizePixel = 0
 Close.AutoButtonColor = false
 Close.ZIndex = 10
-local CloseCorner = Instance.new("UICorner", Close)
-CloseCorner.CornerRadius = UDim.new(0,20)
-
--- Ripple effect
-local CloseRipple = Instance.new("Frame", Close)
-CloseRipple.Size = UDim2.fromScale(1,1)
-CloseRipple.BackgroundColor3 = Color3.fromRGB(255,255,255)
-CloseRipple.BackgroundTransparency = 0.9
-CloseRipple.BorderSizePixel = 0
-CloseRipple.ZIndex = 11
-CloseRipple.Visible = false
-Instance.new("UICorner", CloseRipple).CornerRadius = UDim.new(0,20)
+Instance.new("UICorner", Close).CornerRadius = UDim.new(0,4)
 
 Close.MouseEnter:Connect(function()
-	Close.BackgroundTransparency = 0.8
+	Close.BackgroundColor3 = Color3.fromRGB(255,80,80)
 end)
 Close.MouseLeave:Connect(function()
-	Close.BackgroundTransparency = 1
+	Close.BackgroundColor3 = Color3.fromRGB(200,50,50)
 end)
 Close.MouseButton1Click:Connect(function()
-	-- Ripple animation
-	CloseRipple.Visible = true
-	CloseRipple.Size = UDim2.fromScale(0,0)
-	CloseRipple.Position = UDim2.fromScale(0.5,0.5)
-	CloseRipple.AnchorPoint = Vector2.new(0.5,0.5)
-	TweenService:Create(CloseRipple, TweenInfo.new(0.3), {Size = UDim2.fromScale(2,2), BackgroundTransparency = 1}):Play()
-	wait(0.3)
-	CloseRipple.Visible = false
 	Gui:Destroy()
+end)
+
+MinimizeBtn.MouseEnter:Connect(function()
+	MinimizeBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+end)
+MinimizeBtn.MouseLeave:Connect(function()
+	MinimizeBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+end)
+
+MaximizeBtn.MouseEnter:Connect(function()
+	MaximizeBtn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+end)
+MaximizeBtn.MouseLeave:Connect(function()
+	MaximizeBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
 end)
 
 --// MINIMIZE BUTTON (Material Design Icon Button)
@@ -205,31 +225,39 @@ UserInputService.InputEnded:Connect(function(input)
 	end
 end)
 
---// SIDEBAR (Material Design)
+--// SIDEBAR (redz Hub Style - Left Panel)
 local Sidebar = Instance.new("Frame", Main)
-Sidebar.Position = UDim2.fromScale(0, 0.08)
-Sidebar.Size = UDim2.fromScale(0.25, 0.92)
-Sidebar.BackgroundColor3 = Color3.fromRGB(33,33,33)
+Sidebar.Position = UDim2.fromScale(0, 0.06)
+Sidebar.Size = UDim2.fromScale(0.25, 0.94)
+Sidebar.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Sidebar.BorderSizePixel = 0
-local SidebarCorner = Instance.new("UICorner", Sidebar)
-SidebarCorner.CornerRadius = UDim.new(0,12)
 Sidebar.ZIndex = 3
 
---// CONTENT
-local Content = Instance.new("Frame", Main)
-Content.Position = UDim2.fromScale(0.25, 0.08)
-Content.Size = UDim2.fromScale(0.75, 0.92)
-Content.BackgroundTransparency = 1
+--// CONTENT (redz Hub Style - Right Panel)
+local Content = Instance.new("ScrollingFrame", Main)
+Content.Position = UDim2.fromScale(0.25, 0.06)
+Content.Size = UDim2.fromScale(0.75, 0.94)
+Content.BackgroundColor3 = Color3.fromRGB(35,35,35)
+Content.BorderSizePixel = 0
 Content.ZIndex = 3
+Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Content.ScrollBarThickness = 6
+Content.ScrollBarImageColor3 = Color3.fromRGB(100,150,255)
+Content.BorderSizePixel = 0
+
+local ContentLayout = Instance.new("UIListLayout", Content)
+ContentLayout.Padding = UDim.new(0, 10)
+ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
 --// TABS
 local Tabs = {}
 local CurrentTab
 local function CreateTab(name)
 	local tab = Instance.new("Frame", Content)
-	tab.Size = UDim2.fromScale(1,1)
+	tab.Size = UDim2.fromScale(1,0)
 	tab.Visible = false
 	tab.BackgroundTransparency = 1
+	tab.LayoutOrder = 0
 	Tabs[name] = tab
 	return tab
 end
@@ -238,16 +266,26 @@ local function SwitchTab(name)
 	if CurrentTab then CurrentTab.Visible = false end
 	CurrentTab = Tabs[name]
 	CurrentTab.Visible = true
+	CurrentTab.Size = UDim2.fromScale(1,0)
+	
+	-- Update content canvas size
+	local totalHeight = 0
+	for _, child in pairs(CurrentTab:GetChildren()) do
+		if child:IsA("Frame") and child.LayoutOrder then
+			totalHeight = totalHeight + child.Size.Y.Scale + 0.02
+		end
+	end
+	Content.CanvasSize = UDim2.new(0, 0, 0, totalHeight * 1000)
 end
 
 local SelectedButton = nil
 local function CreateTabButton(text, order, tabName)
 	local btn = Instance.new("TextButton", Sidebar)
-	btn.Size = UDim2.fromScale(0.9, 0.08)
-	btn.Position = UDim2.fromScale(0.05, 0.05 + (order * 0.1))
+	btn.Size = UDim2.fromScale(0.95, 0.045)
+	btn.Position = UDim2.fromScale(0.025, 0.02 + (order * 0.05))
 	btn.Text = text
 	btn.Font = Enum.Font.Gotham
-	btn.TextSize = 14
+	btn.TextSize = 13
 	btn.TextColor3 = Color3.fromRGB(200,200,200)
 	btn.BackgroundColor3 = Color3.fromRGB(0,0,0)
 	btn.BackgroundTransparency = 1
@@ -255,23 +293,13 @@ local function CreateTabButton(text, order, tabName)
 	btn.AutoButtonColor = false
 	btn.ZIndex = 5
 	btn.TextXAlignment = Enum.TextXAlignment.Left
-	local btnCorner = Instance.new("UICorner", btn)
-	btnCorner.CornerRadius = UDim.new(0,8)
-	
-	-- Ripple effect
-	local ripple = Instance.new("Frame", btn)
-	ripple.Size = UDim2.fromScale(1,1)
-	ripple.BackgroundColor3 = Color3.fromRGB(255,255,255)
-	ripple.BackgroundTransparency = 0.9
-	ripple.BorderSizePixel = 0
-	ripple.ZIndex = 6
-	ripple.Visible = false
-	Instance.new("UICorner", ripple).CornerRadius = UDim.new(0,8)
+	btn.Padding = UDim.new(0, 10)
 	
 	-- Hover effects
 	btn.MouseEnter:Connect(function()
 		if btn ~= SelectedButton then
 			btn.BackgroundTransparency = 0.9
+			btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 		end
 	end)
 	btn.MouseLeave:Connect(function()
@@ -281,23 +309,14 @@ local function CreateTabButton(text, order, tabName)
 	end)
 	
 	btn.MouseButton1Click:Connect(function()
-		-- Ripple animation
-		ripple.Visible = true
-		ripple.Size = UDim2.fromScale(0,0)
-		ripple.Position = UDim2.fromScale(0.5,0.5)
-		ripple.AnchorPoint = Vector2.new(0.5,0.5)
-		TweenService:Create(ripple, TweenInfo.new(0.4), {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1}):Play()
-		wait(0.4)
-		ripple.Visible = false
-		
 		-- Update selected button
 		if SelectedButton then
 			SelectedButton.BackgroundTransparency = 1
 			SelectedButton.TextColor3 = Color3.fromRGB(200,200,200)
 		end
 		SelectedButton = btn
-		btn.BackgroundTransparency = 0.85
-		btn.BackgroundColor3 = Color3.fromRGB(50,200,100)
+		btn.BackgroundTransparency = 0
+		btn.BackgroundColor3 = Color3.fromRGB(100,150,255)
 		btn.TextColor3 = Color3.fromRGB(255,255,255)
 		SwitchTab(tabName)
 	end)
@@ -305,24 +324,50 @@ local function CreateTabButton(text, order, tabName)
 	-- Set first button (SERVER) as selected
 	if order == 0 then
 		SelectedButton = btn
-		btn.BackgroundTransparency = 0.85
-		btn.BackgroundColor3 = Color3.fromRGB(50,200,100)
+		btn.BackgroundTransparency = 0
+		btn.BackgroundColor3 = Color3.fromRGB(100,150,255)
 		btn.TextColor3 = Color3.fromRGB(255,255,255)
 	end
 end
 
---// TOGGLES (Material Design Switch)
-local function CreateToggle(parent, text, posY, callback)
+--// SECTION HEADER
+local function CreateSection(parent, title, layoutOrder)
+	local section = Instance.new("Frame", parent)
+	section.Size = UDim2.fromScale(0.95, 0)
+	section.Position = UDim2.fromScale(0.025, 0)
+	section.BackgroundTransparency = 1
+	section.LayoutOrder = layoutOrder
+	
+	local sectionTitle = Instance.new("TextLabel", section)
+	sectionTitle.Size = UDim2.fromScale(1, 0.06)
+	sectionTitle.Position = UDim2.fromScale(0, 0)
+	sectionTitle.BackgroundTransparency = 1
+	sectionTitle.Text = title
+	sectionTitle.Font = Enum.Font.GothamBold
+	sectionTitle.TextSize = 15
+	sectionTitle.TextColor3 = Color3.fromRGB(255,255,255)
+	sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+	sectionTitle.ZIndex = 4
+	
+	return section
+end
+
+--// TOGGLES (redz Hub Style)
+local function CreateToggle(parent, text, description, layoutOrder, callback)
 	local holder = Instance.new("Frame", parent)
-	holder.Size = UDim2.fromScale(0.85,0.12)
-	holder.Position = UDim2.fromScale(0.075, posY)
-	holder.BackgroundColor3 = Color3.fromRGB(0,0,0)
+	holder.Size = UDim2.fromScale(0.95, 0)
+	holder.Position = UDim2.fromScale(0.025, 0)
 	holder.BackgroundTransparency = 1
-	holder.BorderSizePixel = 0
+	holder.LayoutOrder = layoutOrder
 	holder.ZIndex = 4
 
-	local label = Instance.new("TextLabel", holder)
-	label.Size = UDim2.fromScale(0.7,1)
+	local labelContainer = Instance.new("Frame", holder)
+	labelContainer.Size = UDim2.fromScale(0.85, 1)
+	labelContainer.Position = UDim2.fromScale(0, 0)
+	labelContainer.BackgroundTransparency = 1
+	
+	local label = Instance.new("TextLabel", labelContainer)
+	label.Size = UDim2.fromScale(1, 0.5)
 	label.Position = UDim2.fromScale(0, 0)
 	label.BackgroundTransparency = 1
 	label.Text = text
@@ -331,11 +376,23 @@ local function CreateToggle(parent, text, posY, callback)
 	label.TextColor3 = Color3.fromRGB(255,255,255)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.ZIndex = 6
+	
+	local desc = Instance.new("TextLabel", labelContainer)
+	desc.Size = UDim2.fromScale(1, 0.5)
+	desc.Position = UDim2.fromScale(0, 0.5)
+	desc.BackgroundTransparency = 1
+	desc.Text = description
+	desc.Font = Enum.Font.Gotham
+	desc.TextSize = 12
+	desc.TextColor3 = Color3.fromRGB(180,180,180)
+	desc.TextXAlignment = Enum.TextXAlignment.Left
+	desc.TextWrapped = true
+	desc.ZIndex = 6
 
-	-- Material Design Switch
+	-- Blue Switch (redz Hub Style)
 	local switchTrack = Instance.new("Frame", holder)
-	switchTrack.Size = UDim2.fromScale(0.15, 0.4)
-	switchTrack.Position = UDim2.fromScale(0.82, 0.3)
+	switchTrack.Size = UDim2.fromScale(0.08, 0.04)
+	switchTrack.Position = UDim2.fromScale(0.9, 0.48)
 	switchTrack.BackgroundColor3 = Color3.fromRGB(117,117,117)
 	switchTrack.BorderSizePixel = 0
 	switchTrack.ZIndex = 6
@@ -343,8 +400,8 @@ local function CreateToggle(parent, text, posY, callback)
 	switchTrackCorner.CornerRadius = UDim.new(0,10)
 	
 	local switchThumb = Instance.new("Frame", switchTrack)
-	switchThumb.Size = UDim2.fromScale(0.5, 1.2)
-	switchThumb.Position = UDim2.fromScale(0, -0.1)
+	switchThumb.Size = UDim2.fromScale(0.45, 1.2)
+	switchThumb.Position = UDim2.fromScale(0.05, -0.1)
 	switchThumb.BackgroundColor3 = Color3.fromRGB(250,250,250)
 	switchThumb.BorderSizePixel = 0
 	switchThumb.ZIndex = 7
@@ -352,8 +409,8 @@ local function CreateToggle(parent, text, posY, callback)
 	switchThumbCorner.CornerRadius = UDim.new(0,10)
 	
 	local switchButton = Instance.new("TextButton", holder)
-	switchButton.Size = UDim2.fromScale(0.15, 0.4)
-	switchButton.Position = UDim2.fromScale(0.82, 0.3)
+	switchButton.Size = UDim2.fromScale(0.08, 0.04)
+	switchButton.Position = UDim2.fromScale(0.9, 0.48)
 	switchButton.BackgroundTransparency = 1
 	switchButton.Text = ""
 	switchButton.ZIndex = 8
@@ -366,13 +423,19 @@ local function CreateToggle(parent, text, posY, callback)
 		isOn = state
 		
 		if isOn then
-			TweenService:Create(switchTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50,200,100)}):Play()
+			TweenService:Create(switchTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100,150,255)}):Play()
 			TweenService:Create(switchThumb, TweenInfo.new(0.2), {Position = UDim2.fromScale(0.5, -0.1), BackgroundColor3 = Color3.fromRGB(255,255,255)}):Play()
 		else
 			TweenService:Create(switchTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(117,117,117)}):Play()
-			TweenService:Create(switchThumb, TweenInfo.new(0.2), {Position = UDim2.fromScale(0, -0.1), BackgroundColor3 = Color3.fromRGB(250,250,250)}):Play()
+			TweenService:Create(switchThumb, TweenInfo.new(0.2), {Position = UDim2.fromScale(0.05, -0.1), BackgroundColor3 = Color3.fromRGB(250,250,250)}):Play()
 		end
 	end)
+	
+	-- Auto-size holder based on description
+	holder.Size = UDim2.new(0.95, 0, 0, math.max(50, desc.TextBounds.Y + 30))
+	labelContainer.Size = UDim2.new(0.85, 0, 1, 0)
+	
+	return holder
 end
 
 --// TAB SETUP
@@ -392,23 +455,31 @@ CreateTabButton("TELEPORT", 4, "Travel")
 CreateTabButton("ESP", 5, "Visual")
 CreateTabButton("MISC", 6, "Misc")
 
---// TAB TOGGLES
-CreateToggle(FarmTab, "Auto Farm Enemies", 0.1, function()
+--// TAB CONTENT (redz Hub Style)
+-- Farm Tab
+local FarmSection = CreateSection(FarmTab, "Farm", 1)
+CreateToggle(FarmSection, "Auto Farm Enemies", "Automatically farms enemies for you.", 1, function()
 	State.AutoFarm = not State.AutoFarm
 	return State.AutoFarm
 end)
 
-CreateToggle(TravelTab, "Island Teleport", 0.1, function()
+-- Travel Tab
+local TravelSection = CreateSection(TravelTab, "Teleport", 1)
+CreateToggle(TravelSection, "Island Teleport", "Teleports to the closest island automatically.", 1, function()
 	State.Teleport = not State.Teleport
 	return State.Teleport
 end)
 
-CreateToggle(CombatTab, "Aim Assist", 0.1, function()
+-- Combat Tab
+local CombatSection = CreateSection(CombatTab, "Combat", 1)
+CreateToggle(CombatSection, "Aim Assist", "Helps you aim at enemies automatically.", 1, function()
 	State.CombatAssist = not State.CombatAssist
 	return State.CombatAssist
 end)
 
-CreateToggle(VisualTab, "ESP Overlay", 0.1, function()
+-- Visual Tab
+local VisualSection = CreateSection(VisualTab, "Visual", 1)
+CreateToggle(VisualSection, "ESP Overlay", "Shows player names and highlights above their heads.", 1, function()
 	State.ESP = not State.ESP
 	if State.ESP then
 		-- Create ESP for all existing players when enabled
@@ -474,8 +545,8 @@ DropdownButton.ZIndex = 5
 local DropdownButtonCorner = Instance.new("UICorner", DropdownButton)
 DropdownButtonCorner.CornerRadius = UDim.new(0,8)
 
--- Dropdown list (hidden by default) - Material Design
-local DropdownList = Instance.new("ScrollingFrame", ServerTab)
+-- Dropdown list (hidden by default)
+local DropdownList = Instance.new("ScrollingFrame", ServerSection)
 DropdownList.Size = UDim2.fromScale(0.4, 0.3)
 DropdownList.Position = UDim2.fromScale(0.55, 0.14)
 DropdownList.BackgroundColor3 = Color3.fromRGB(45,45,45)
@@ -484,7 +555,7 @@ DropdownList.Visible = false
 DropdownList.ZIndex = 6
 DropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
 DropdownList.ScrollBarThickness = 4
-DropdownList.ScrollBarImageColor3 = Color3.fromRGB(50,200,100)
+DropdownList.ScrollBarImageColor3 = Color3.fromRGB(100,150,255)
 local DropdownListCorner = Instance.new("UICorner", DropdownList)
 DropdownListCorner.CornerRadius = UDim.new(0,8)
 
@@ -492,8 +563,8 @@ local DropdownListLayout = Instance.new("UIListLayout", DropdownList)
 DropdownListLayout.Padding = UDim.new(0, 2)
 DropdownListLayout.SortOrder = Enum.SortOrder.Name
 
--- Player info output - Material Design
-local InfoContainer = Instance.new("ScrollingFrame", ServerTab)
+-- Player info output
+local InfoContainer = Instance.new("ScrollingFrame", ServerSection)
 InfoContainer.Size = UDim2.fromScale(0.9, 0.75)
 InfoContainer.Position = UDim2.fromScale(0.05, 0.2)
 InfoContainer.BackgroundColor3 = Color3.fromRGB(45,45,45)
@@ -501,7 +572,7 @@ InfoContainer.BorderSizePixel = 0
 InfoContainer.ZIndex = 4
 InfoContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
 InfoContainer.ScrollBarThickness = 4
-InfoContainer.ScrollBarImageColor3 = Color3.fromRGB(50,200,100)
+InfoContainer.ScrollBarImageColor3 = Color3.fromRGB(100,150,255)
 local InfoContainerCorner = Instance.new("UICorner", InfoContainer)
 InfoContainerCorner.CornerRadius = UDim.new(0,8)
 

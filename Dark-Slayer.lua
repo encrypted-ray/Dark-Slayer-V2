@@ -329,11 +329,13 @@ local FarmTab = CreateTab("Farm")
 local TravelTab = CreateTab("Travel")
 local CombatTab = CreateTab("Combat")
 local VisualTab = CreateTab("Visual")
+local ServerTab = CreateTab("Server")
 
 CreateTabButton("Farming", 0, "Farm")
 CreateTabButton("Teleport", 1, "Travel")
 CreateTabButton("Combat", 2, "Combat")
 CreateTabButton("ESP", 3, "Visual")
+CreateTabButton("Server", 4, "Server")
 
 --// TAB TOGGLES
 CreateToggle(FarmTab, "Auto Farm Enemies", 0.1, function()
@@ -368,6 +370,287 @@ CreateToggle(VisualTab, "ESP Overlay", 0.1, function()
 		end
 	end
 	return State.ESP
+end)
+
+--// SERVER TAB UI
+local SelectedPlayer = nil
+local DropdownOpen = false
+
+-- Dropdown container (right-aligned)
+local DropdownContainer = Instance.new("Frame", ServerTab)
+DropdownContainer.Size = UDim2.fromScale(0.4, 0.08)
+DropdownContainer.Position = UDim2.fromScale(0.55, 0.05)
+DropdownContainer.BackgroundColor3 = Color3.fromRGB(25,25,25)
+DropdownContainer.BorderSizePixel = 0
+DropdownContainer.ZIndex = 4
+Instance.new("UICorner", DropdownContainer).CornerRadius = UDim.new(0,8)
+
+local DropdownLabel = Instance.new("TextLabel", DropdownContainer)
+DropdownLabel.Size = UDim2.fromScale(0.3, 1)
+DropdownLabel.Position = UDim2.fromScale(0.02, 0)
+DropdownLabel.BackgroundTransparency = 1
+DropdownLabel.Text = "Player:"
+DropdownLabel.Font = Enum.Font.GothamSemibold
+DropdownLabel.TextSize = 14
+DropdownLabel.TextColor3 = Color3.fromRGB(240,240,240)
+DropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+DropdownLabel.ZIndex = 5
+DropdownLabel.TextStrokeTransparency = 0.4
+DropdownLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+
+local DropdownButton = Instance.new("TextButton", DropdownContainer)
+DropdownButton.Size = UDim2.fromScale(0.65, 0.8)
+DropdownButton.Position = UDim2.fromScale(0.33, 0.1)
+DropdownButton.Text = "Select Player..."
+DropdownButton.Font = Enum.Font.Gotham
+DropdownButton.TextSize = 13
+DropdownButton.TextColor3 = Color3.fromRGB(200,200,200)
+DropdownButton.BackgroundColor3 = Color3.fromRGB(35,35,35)
+DropdownButton.BorderSizePixel = 0
+DropdownButton.AutoButtonColor = false
+DropdownButton.ZIndex = 5
+DropdownButton.TextStrokeTransparency = 0.4
+DropdownButton.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+Instance.new("UICorner", DropdownButton).CornerRadius = UDim.new(0,6)
+
+-- Dropdown list (hidden by default)
+local DropdownList = Instance.new("ScrollingFrame", ServerTab)
+DropdownList.Size = UDim2.fromScale(0.4, 0.3)
+DropdownList.Position = UDim2.fromScale(0.55, 0.14)
+DropdownList.BackgroundColor3 = Color3.fromRGB(25,25,25)
+DropdownList.BorderSizePixel = 0
+DropdownList.Visible = false
+DropdownList.ZIndex = 6
+DropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
+DropdownList.ScrollBarThickness = 4
+DropdownList.ScrollBarImageColor3 = Color3.fromRGB(200,0,0)
+Instance.new("UICorner", DropdownList).CornerRadius = UDim.new(0,8)
+
+local DropdownListLayout = Instance.new("UIListLayout", DropdownList)
+DropdownListLayout.Padding = UDim.new(0, 2)
+DropdownListLayout.SortOrder = Enum.SortOrder.Name
+
+-- Player info output
+local InfoContainer = Instance.new("ScrollingFrame", ServerTab)
+InfoContainer.Size = UDim2.fromScale(0.9, 0.75)
+InfoContainer.Position = UDim2.fromScale(0.05, 0.2)
+InfoContainer.BackgroundColor3 = Color3.fromRGB(20,20,20)
+InfoContainer.BorderSizePixel = 0
+InfoContainer.ZIndex = 4
+InfoContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+InfoContainer.ScrollBarThickness = 4
+InfoContainer.ScrollBarImageColor3 = Color3.fromRGB(200,0,0)
+Instance.new("UICorner", InfoContainer).CornerRadius = UDim.new(0,8)
+
+local InfoLayout = Instance.new("UIListLayout", InfoContainer)
+InfoLayout.Padding = UDim.new(0, 5)
+InfoLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local function UpdateDropdown()
+	local players = Players:GetPlayers()
+	table.sort(players, function(a, b) return a.Name < b.Name end)
+	
+	-- Clear existing buttons
+	for _, child in pairs(DropdownList:GetChildren()) do
+		if child:IsA("TextButton") then
+			child:Destroy()
+		end
+	end
+	
+	-- Create buttons for each player
+	for i, player in pairs(players) do
+		local playerBtn = Instance.new("TextButton", DropdownList)
+		playerBtn.Size = UDim2.new(1, -10, 0, 30)
+		playerBtn.Position = UDim2.new(0, 5, 0, (i-1) * 32)
+		playerBtn.Text = player.Name
+		playerBtn.Font = Enum.Font.Gotham
+		playerBtn.TextSize = 13
+		playerBtn.TextColor3 = Color3.fromRGB(240,240,240)
+		playerBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		playerBtn.BorderSizePixel = 0
+		playerBtn.AutoButtonColor = false
+		playerBtn.ZIndex = 7
+		playerBtn.TextStrokeTransparency = 0.4
+		playerBtn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+		Instance.new("UICorner", playerBtn).CornerRadius = UDim.new(0,6)
+		
+		playerBtn.MouseEnter:Connect(function()
+			playerBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+		end)
+		playerBtn.MouseLeave:Connect(function()
+			playerBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		end)
+		
+		playerBtn.MouseButton1Click:Connect(function()
+			SelectedPlayer = player
+			DropdownButton.Text = player.Name
+			DropdownList.Visible = false
+			DropdownOpen = false
+			UpdatePlayerInfo(player)
+		end)
+	end
+	
+	DropdownList.CanvasSize = UDim2.new(0, 0, 0, #players * 32)
+end
+
+local function CreateInfoLabel(parent, text, value, layoutOrder)
+	local holder = Instance.new("Frame", parent)
+	holder.Size = UDim2.new(1, -20, 0, 30)
+	holder.BackgroundTransparency = 1
+	holder.LayoutOrder = layoutOrder
+	
+	local label = Instance.new("TextLabel", holder)
+	label.Size = UDim2.fromScale(0.4, 1)
+	label.Position = UDim2.fromScale(0, 0)
+	label.BackgroundTransparency = 1
+	label.Text = text .. ":"
+	label.Font = Enum.Font.GothamSemibold
+	label.TextSize = 13
+	label.TextColor3 = Color3.fromRGB(200,200,200)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextStrokeTransparency = 0.4
+	label.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+	
+	local valueLabel = Instance.new("TextLabel", holder)
+	valueLabel.Size = UDim2.fromScale(0.6, 1)
+	valueLabel.Position = UDim2.fromScale(0.4, 0)
+	valueLabel.BackgroundTransparency = 1
+	valueLabel.Text = tostring(value)
+	valueLabel.Font = Enum.Font.Gotham
+	valueLabel.TextSize = 13
+	valueLabel.TextColor3 = Color3.fromRGB(255,255,255)
+	valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+	valueLabel.TextStrokeTransparency = 0.4
+	valueLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+	
+	return holder, valueLabel
+end
+
+local InfoLabels = {}
+function UpdatePlayerInfo(player)
+	-- Clear existing info
+	for _, label in pairs(InfoLabels) do
+		label:Destroy()
+	end
+	InfoLabels = {}
+	
+	if not player then return end
+	
+	local layoutOrder = 1
+	
+	-- Player Name
+	local nameHolder, nameValue = CreateInfoLabel(InfoContainer, "Player Name", player.Name, layoutOrder)
+	table.insert(InfoLabels, nameHolder)
+	layoutOrder = layoutOrder + 1
+	
+	-- User ID
+	local idHolder, idValue = CreateInfoLabel(InfoContainer, "User ID", player.UserId, layoutOrder)
+	table.insert(InfoLabels, idHolder)
+	layoutOrder = layoutOrder + 1
+	
+	-- Account Age
+	local accountAge = math.floor(player.AccountAge / 365)
+	local ageHolder, ageValue = CreateInfoLabel(InfoContainer, "Account Age", accountAge .. " years", layoutOrder)
+	table.insert(InfoLabels, ageHolder)
+	layoutOrder = layoutOrder + 1
+	
+	-- Display Name
+	local displayHolder, displayValue = CreateInfoLabel(InfoContainer, "Display Name", player.DisplayName, layoutOrder)
+	table.insert(InfoLabels, displayHolder)
+	layoutOrder = layoutOrder + 1
+	
+	-- Character Info
+	if player.Character then
+		local character = player.Character
+		
+		-- Health
+		local humanoid = character:FindFirstChild("Humanoid")
+		if humanoid then
+			local healthHolder, healthValue = CreateInfoLabel(InfoContainer, "Health", math.floor(humanoid.Health) .. "/" .. math.floor(humanoid.MaxHealth), layoutOrder)
+			table.insert(InfoLabels, healthHolder)
+			layoutOrder = layoutOrder + 1
+			
+			-- Update health in real-time
+			humanoid.HealthChanged:Connect(function(health)
+				healthValue.Text = math.floor(health) .. "/" .. math.floor(humanoid.MaxHealth)
+			end)
+		end
+		
+		-- Position
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			local pos = rootPart.Position
+			local posText = string.format("X: %.1f, Y: %.1f, Z: %.1f", pos.X, pos.Y, pos.Z)
+			local posHolder, posValue = CreateInfoLabel(InfoContainer, "Position", posText, layoutOrder)
+			table.insert(InfoLabels, posHolder)
+			layoutOrder = layoutOrder + 1
+			
+			-- Update position in real-time
+			RunService.Heartbeat:Connect(function()
+				if rootPart and rootPart.Parent then
+					local currentPos = rootPart.Position
+					posValue.Text = string.format("X: %.1f, Y: %.1f, Z: %.1f", currentPos.X, currentPos.Y, currentPos.Z)
+				end
+			end)
+		end
+		
+		-- Tools/Weapons
+		local tools = {}
+		for _, tool in pairs(character:GetChildren()) do
+			if tool:IsA("Tool") then
+				table.insert(tools, tool.Name)
+			end
+		end
+		local toolsText = #tools > 0 and table.concat(tools, ", ") or "None"
+		local toolsHolder, toolsValue = CreateInfoLabel(InfoContainer, "Tools", toolsText, layoutOrder)
+		table.insert(InfoLabels, toolsHolder)
+		layoutOrder = layoutOrder + 1
+	else
+		local noCharHolder, noCharValue = CreateInfoLabel(InfoContainer, "Character", "Not loaded", layoutOrder)
+		table.insert(InfoLabels, noCharHolder)
+		layoutOrder = layoutOrder + 1
+	end
+	
+	-- Update canvas size
+	InfoContainer.CanvasSize = UDim2.new(0, 0, 0, layoutOrder * 35)
+end
+
+-- Dropdown button functionality
+DropdownButton.MouseEnter:Connect(function()
+	DropdownButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
+end)
+DropdownButton.MouseLeave:Connect(function()
+	DropdownButton.BackgroundColor3 = Color3.fromRGB(35,35,35)
+end)
+
+DropdownButton.MouseButton1Click:Connect(function()
+	DropdownOpen = not DropdownOpen
+	DropdownList.Visible = DropdownOpen
+	if DropdownOpen then
+		UpdateDropdown()
+	end
+end)
+
+-- Update dropdown when players join/leave
+Players.PlayerAdded:Connect(function()
+	if DropdownOpen then
+		UpdateDropdown()
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	if SelectedPlayer == player then
+		SelectedPlayer = nil
+		DropdownButton.Text = "Select Player..."
+		-- Clear info
+		for _, label in pairs(InfoLabels) do
+			label:Destroy()
+		end
+		InfoLabels = {}
+	end
+	if DropdownOpen then
+		UpdateDropdown()
+	end
 end)
 
 SwitchTab("Farm")
@@ -450,7 +733,7 @@ local function CreateESP(player)
 	
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "ESP_Name"
-	billboard.Size = UDim2.new(0, 200, 0, 50)
+	billboard.Size = UDim2.new(0, 200, 0, 30)
 	billboard.StudsOffset = Vector3.new(0, 3.5, 0)
 	billboard.AlwaysOnTop = true
 	billboard.MaxDistance = math.huge -- Show regardless of distance
@@ -459,7 +742,7 @@ local function CreateESP(player)
 	
 	-- Name label
 	local nameLabel = Instance.new("TextLabel", billboard)
-	nameLabel.Size = UDim2.new(1, 0, 0.6, 0)
+	nameLabel.Size = UDim2.new(1, 0, 1, 0)
 	nameLabel.Position = UDim2.new(0, 0, 0, 0)
 	nameLabel.BackgroundTransparency = 1
 	nameLabel.Text = player.Name
@@ -468,41 +751,6 @@ local function CreateESP(player)
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextStrokeTransparency = 0.3
 	nameLabel.TextStrokeColor3 = Color3.fromRGB(200, 0, 0)
-	
-	-- Health label
-	local healthLabel = Instance.new("TextLabel", billboard)
-	healthLabel.Size = UDim2.new(1, 0, 0.4, 0)
-	healthLabel.Position = UDim2.new(0, 0, 0.6, 0)
-	healthLabel.BackgroundTransparency = 1
-	healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-	healthLabel.TextSize = 12
-	healthLabel.Font = Enum.Font.Gotham
-	healthLabel.TextStrokeTransparency = 0.3
-	healthLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-	
-	-- Update health display
-	local humanoid = character:FindFirstChild("Humanoid")
-	if humanoid then
-		local function updateHealth()
-			local health = math.floor(humanoid.Health)
-			local maxHealth = math.floor(humanoid.MaxHealth)
-			healthLabel.Text = "HP: " .. health .. "/" .. maxHealth
-			
-			-- Change color based on health percentage
-			local healthPercent = humanoid.Health / humanoid.MaxHealth
-			if healthPercent > 0.6 then
-				healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-			elseif healthPercent > 0.3 then
-				healthLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
-			else
-				healthLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-			end
-		end
-		
-		updateHealth()
-		local healthConnection = humanoid.HealthChanged:Connect(updateHealth)
-		table.insert(ESPConnections, healthConnection)
-	end
 	
 	ESPObjects[player] = billboard
 end

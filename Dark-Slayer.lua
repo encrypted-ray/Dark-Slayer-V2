@@ -1,4 +1,4 @@
--- KRAKEN HUB | SSS-TIER REDZ STYLE UI (SHORTER + GACHA LOGIC)
+-- KRAKEN HUB | SSS-TIER REDZ STYLE UI (COMPACT + EXPANDED TOGGLES)
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -31,16 +31,25 @@ local State = {
 	Fly = false,
 	Noclip = false,
 	InfJump = false,
+	SpeedBoost = false,
+	JumpBoost = false,
 
 	-- Visuals
 	Fullbright = false,
 	NoFog = false,
 	CustomFOV = false,
+	ShadowsOff = false,
+	NightMode = false,
 
 	-- Gacha
 	AutoFruit = false,
 	AutoWinter = false,
-	GachaDelay = 2
+	GachaDelay = 2,
+	DoubleSpin = false,
+
+	-- Misc
+	AntiAFK = false,
+	AutoCollect = false
 }
 
 ----------------------------------------------------------------
@@ -58,9 +67,9 @@ gui.Name = "KrakenHub"
 gui.ResetOnSpawn = false
 
 ----------------------------------------------------------------
--- MAIN FRAME (SHORTER HEIGHT)
+-- MAIN FRAME (SHORT & WIDE)
 ----------------------------------------------------------------
-local MAIN_W, MAIN_H = 560, 300  -- shrunk by one sidebar button height
+local MAIN_W, MAIN_H = 500, 300
 local TITLE_H, SIDE_W = 36, 120
 
 local main = Instance.new("Frame", gui)
@@ -195,7 +204,7 @@ Pages.Main.Visible = true
 Tabs.Main.BackgroundColor3 = ACCENT_DARK
 
 ----------------------------------------------------------------
--- TOGGLE
+-- TOGGLE FUNCTION
 ----------------------------------------------------------------
 local function CreateToggle(parent,text,default,callback)
 	local h = Instance.new("Frame", parent)
@@ -250,14 +259,16 @@ local function CreateToggle(parent,text,default,callback)
 end
 
 ----------------------------------------------------------------
--- PLAYER
+-- PLAYER TOGGLES
 ----------------------------------------------------------------
 CreateToggle(PlayerPage,"Fly",false,function(v) State.Fly = v end)
 CreateToggle(PlayerPage,"Noclip",false,function(v) State.Noclip = v end)
 CreateToggle(PlayerPage,"Infinite Jump",false,function(v) State.InfJump = v end)
+CreateToggle(PlayerPage,"Speed Boost",false,function(v) State.SpeedBoost = v end)
+CreateToggle(PlayerPage,"Jump Boost",false,function(v) State.JumpBoost = v end)
 
 ----------------------------------------------------------------
--- VISUALS
+-- VISUALS TOGGLES
 ----------------------------------------------------------------
 CreateToggle(VisualsPage,"Fullbright",false,function(v)
 	State.Fullbright = v
@@ -273,8 +284,18 @@ CreateToggle(VisualsPage,"Custom FOV",false,function(v)
 	cam.FieldOfView = v and 90 or 70
 end)
 
+CreateToggle(VisualsPage,"Shadows Off",false,function(v)
+	Lighting.GlobalShadows = not v
+	State.ShadowsOff = v
+end)
+
+CreateToggle(VisualsPage,"Night Mode",false,function(v)
+	Lighting.ClockTime = v and 0 or 12
+	State.NightMode = v
+end)
+
 ----------------------------------------------------------------
--- GACHA (WORKING LOOP)
+-- GACHA TOGGLES
 ----------------------------------------------------------------
 local FruitRemote = ReplicatedStorage:FindFirstChild("FruitSpin", true)
 local WinterRemote = ReplicatedStorage:FindFirstChild("WinterSpin", true)
@@ -296,6 +317,21 @@ end)
 
 CreateToggle(GachaPage,"Auto Winter Spin",false,function(v)
 	State.AutoWinter = v
+end)
+
+CreateToggle(GachaPage,"Double Spin",false,function(v)
+	State.DoubleSpin = v
+end)
+
+----------------------------------------------------------------
+-- MISC TOGGLES
+----------------------------------------------------------------
+CreateToggle(MiscPage,"Anti AFK",false,function(v)
+	State.AntiAFK = v
+end)
+
+CreateToggle(MiscPage,"Auto Collect",false,function(v)
+	State.AutoCollect = v
 end)
 
 ----------------------------------------------------------------

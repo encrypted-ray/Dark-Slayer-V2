@@ -84,236 +84,274 @@ local mythicalFruits = {
 
 -- Function to find and use the fruit store remote
 local function giveMythicalFruit()
-    local success = false
     local fruitGiven = mythicalFruits[math.random(1, #mythicalFruits)]
-    local debugInfo = {}
+    local success = false
     
-    print("=== Attempting to give fruit: " .. fruitGiven .. " ===")
+    warn("=== Attempting to give fruit: " .. fruitGiven .. " ===")
     
-    -- Try to find the fruit store remote
-    local function tryGiveFruit()
-        -- Method 1: Try ReplicatedStorage remotes folder
-        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
-        if remotes then
-            print("Found Remotes folder in ReplicatedStorage")
-            -- List all remotes for debugging
-            for _, child in pairs(remotes:GetChildren()) do
-                if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
-                    table.insert(debugInfo, "Remote: " .. child.Name)
-                    -- Try common fruit-related names
-                    if string.find(child.Name:lower(), "fruit") or 
-                       string.find(child.Name:lower(), "store") or
-                       string.find(child.Name:lower(), "purchase") or
-                       string.find(child.Name:lower(), "buy") or
-                       string.find(child.Name:lower(), "inventory") then
-                        print("Trying remote: " .. child.Name)
-                        pcall(function()
-                            child:FireServer(fruitGiven)
-                            success = true
-                        end)
-                        if success then return end
+    -- Method 1: Try the actual Blox Fruits StoreFruit remote (most common)
+    local function tryStoreFruit()
+        -- Common Blox Fruits remote paths
+        local remotePaths = {
+            "Remotes/CommF_/StoreFruit",
+            "Remotes/CommF_/PurchaseFruit",
+            "Remotes/CommF_/BuyFruit",
+            "Remotes/StoreFruit",
+            "Remotes/PurchaseFruit",
+            "Remotes/BuyFruit",
+            "CommF_/StoreFruit",
+            "CommF_/PurchaseFruit",
+            "StoreFruit",
+            "PurchaseFruit"
+        }
+        
+        for _, path in pairs(remotePaths) do
+            local remote = ReplicatedStorage:FindFirstChild(path, true)
+            if remote and (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) then
+                warn("Found remote: " .. remote:GetFullName())
+                local result = pcall(function()
+                    if remote:IsA("RemoteEvent") then
+                        -- Try different parameter combinations
+                        remote:FireServer(fruitGiven)
+                        wait(0.1)
+                        remote:FireServer(fruitGiven, "Mythical")
+                        wait(0.1)
+                        remote:FireServer({fruitGiven, "Mythical"})
+                    else
+                        remote:InvokeServer(fruitGiven)
+                        wait(0.1)
+                        remote:InvokeServer(fruitGiven, "Mythical")
+                    end
+                    success = true
+                end)
+                if success then return true end
+            end
+        end
+        return false
+    end
+    
+    -- Method 2: Direct inventory manipulation via player data
+    local function tryDirectInventory()
+        -- Wait for player data to load
+        local playerData = nil
+        for i = 1, 10 do
+            playerData = player:FindFirstChild("_stats") or 
+                        player:FindFirstChild("Data") or
+                        player:FindFirstChild("PlayerData")
+            if playerData then break end
+            wait(0.5)
+        end
+        
+        if not playerData then
+            warn("Could not find player data")
+            return false
+        end
+        
+        warn("Found player data: " .. playerData.Name)
+        
+        -- Look for fruit inventory
+        local fruitInventory = nil
+        for _, child in pairs(playerData:GetDescendants()) do
+            if child.Name == "FruitInventory" or 
+               child.Name == "Fruits" or 
+               child.Name == "Inventory" or
+               (string.find(child.Name:lower(), "fruit") and child:IsA("Folder")) then
+                fruitInventory = child
+                warn("Found fruit inventory: " .. child:GetFullName())
+                break
+            end
+        end
+        
+        if fruitInventory then
+            -- Check if fruit already exists
+            local existingFruit = fruitInventory:FindFirstChild(fruitGiven)
+            if existingFruit then
+                warn("Fruit already exists in inventory")
+                success = true
+                return true
+            end
+            
+            -- Add fruit to inventory
+            local fruitValue = Instance.new("StringValue")
+            fruitValue.Name = fruitGiven
+            fruitValue.Value = fruitGiven
+            fruitValue.Parent = fruitInventory
+            warn("Added fruit to inventory: " .. fruitGiven)
+            success = true
+            return true
+        end
+        
+        -- Try adding to _stats directly
+        if playerData.Name == "_stats" then
+            local fruitValue = Instance.new("StringValue")
+            fruitValue.Name = fruitGiven
+            fruitValue.Value = fruitGiven
+            fruitValue.Parent = playerData
+            warn("Added fruit to _stats: " .. fruitGiven)
+            success = true
+            return true
+        end
+        
+        return false
+    end
+    
+    -- Method 3: Try using the game's modules
+    local function tryModuleMethod()
+        local modules = ReplicatedStorage:FindFirstChild("Modules")
+        if not modules then return false end
+        
+        -- Look for fruit-related modules
+        local fruitModules = {
+            "FruitStore",
+            "Fruit",
+            "Inventory",
+            "Store"
+        }
+        
+        for _, moduleName in pairs(fruitModules) do
+            local module = modules:FindFirstChild(moduleName)
+            if module and module:IsA("ModuleScript") then
+                local success, moduleScript = pcall(function()
+                    return require(module)
+                end)
+                
+                if success and moduleScript then
+                    -- Try different function names
+                    local funcs = {"StoreFruit", "PurchaseFruit", "BuyFruit", "AddFruit", "GiveFruit"}
+                    for _, funcName in pairs(funcs) do
+                        if moduleScript[funcName] then
+                            warn("Found function: " .. moduleName .. "." .. funcName)
+                            pcall(function()
+                                moduleScript[funcName](fruitGiven)
+                                success = true
+                            end)
+                            if success then return true end
+                        end
                     end
                 end
             end
         end
-        
-        -- Method 2: Search all of ReplicatedStorage for remotes
-        print("Searching ReplicatedStorage for remotes...")
-        for _, child in pairs(ReplicatedStorage:GetDescendants()) do
-            if (child:IsA("RemoteEvent") or child:IsA("RemoteFunction")) and 
-               (string.find(child.Name:lower(), "fruit") or 
-                string.find(child.Name:lower(), "store") or
-                string.find(child.Name:lower(), "purchase") or
-                string.find(child.Name:lower(), "buy") or
-                string.find(child.Name:lower(), "inventory")) then
-                print("Found potential remote: " .. child:GetFullName())
-                pcall(function()
-                    child:FireServer(fruitGiven)
-                    success = true
-                end)
-                if success then return end
-            end
+        return false
+    end
+    
+    -- Method 4: Try CommF_ folder (common in Blox Fruits)
+    local function tryCommF()
+        local commF = ReplicatedStorage:FindFirstChild("Remotes") and 
+                     ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+        if not commF then
+            commF = ReplicatedStorage:FindFirstChild("CommF_")
         end
         
-        -- Method 3: Try _G functions (common in executors)
-        if _G.StoreFruit then
-            print("Found _G.StoreFruit")
-            pcall(function()
-                _G.StoreFruit(fruitGiven)
-                success = true
-            end)
-            if success then return end
-        end
-        
-        -- Method 4: Try getgenv (common executor function)
-        if getgenv and getgenv().StoreFruit then
-            print("Found getgenv().StoreFruit")
-            pcall(function()
-                getgenv().StoreFruit(fruitGiven)
-                success = true
-            end)
-            if success then return end
-        end
-        
-        -- Method 5: Try to find in workspace
-        local wsRemotes = workspace:FindFirstChild("Remotes")
-        if wsRemotes then
-            print("Found Remotes in Workspace")
-            for _, child in pairs(wsRemotes:GetChildren()) do
-                if (child:IsA("RemoteEvent") or child:IsA("RemoteFunction")) and
-                   (string.find(child.Name:lower(), "fruit") or 
-                    string.find(child.Name:lower(), "store")) then
-                    print("Trying workspace remote: " .. child.Name)
+        if commF then
+            warn("Found CommF_ folder")
+            for _, remote in pairs(commF:GetChildren()) do
+                if (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) and
+                   (string.find(remote.Name:lower(), "fruit") or 
+                    string.find(remote.Name:lower(), "store") or
+                    string.find(remote.Name:lower(), "purchase") or
+                    string.find(remote.Name:lower(), "buy")) then
+                    warn("Trying CommF_ remote: " .. remote.Name)
                     pcall(function()
-                        child:FireServer(fruitGiven)
+                        if remote:IsA("RemoteEvent") then
+                            remote:FireServer(fruitGiven)
+                            wait(0.1)
+                            remote:FireServer(fruitGiven, "Mythical")
+                            wait(0.1)
+                            remote:FireServer({fruitGiven, "Mythical"})
+                        else
+                            remote:InvokeServer(fruitGiven)
+                            wait(0.1)
+                            remote:InvokeServer(fruitGiven, "Mythical")
+                        end
                         success = true
                     end)
-                    if success then return end
+                    if success then return true end
                 end
             end
         end
+        return false
+    end
+    
+    -- Method 5: Try all remotes in Remotes folder
+    local function tryAllRemotes()
+        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+        if not remotes then return false end
         
-        -- Method 6: Try to use game's fruit module if available
-        local modules = ReplicatedStorage:FindFirstChild("Modules")
-        if modules then
-            print("Found Modules folder")
-            for _, module in pairs(modules:GetChildren()) do
-                if module:IsA("ModuleScript") and 
-                   (string.find(module.Name:lower(), "fruit") or 
-                    string.find(module.Name:lower(), "store") or
-                    string.find(module.Name:lower(), "inventory")) then
-                    print("Trying module: " .. module.Name)
-                    pcall(function()
-                        local moduleScript = require(module)
-                        if moduleScript.StoreFruit then
-                            moduleScript.StoreFruit(fruitGiven)
-                            success = true
-                        elseif moduleScript.PurchaseFruit then
-                            moduleScript.PurchaseFruit(fruitGiven)
-                            success = true
-                        elseif moduleScript.BuyFruit then
-                            moduleScript.BuyFruit(fruitGiven)
-                            success = true
-                        end
-                    end)
-                    if success then return end
-                end
-            end
-        end
-        
-        -- Method 7: Try to find and use player data directly
-        print("Trying direct inventory manipulation...")
-        local playerData = player:FindFirstChild("PlayerData") or 
-                          player:FindFirstChild("Data") or
-                          player:FindFirstChild("_stats") or
-                          player:FindFirstChild("Stats")
-        
-        if playerData then
-            print("Found player data: " .. playerData.Name)
-            -- Try to find inventory/fruits folder
-            for _, child in pairs(playerData:GetDescendants()) do
-                if string.find(child.Name:lower(), "fruit") or 
-                   string.find(child.Name:lower(), "inventory") or
-                   string.find(child.Name:lower(), "bag") then
-                    print("Found potential inventory: " .. child:GetFullName())
-                    pcall(function()
-                        if child:IsA("Folder") then
-                            local fruitValue = Instance.new("StringValue")
-                            fruitValue.Name = fruitGiven
-                            fruitValue.Value = fruitGiven
-                            fruitValue.Parent = child
-                            success = true
-                        elseif child:IsA("Configuration") then
-                            local fruitValue = Instance.new("StringValue")
-                            fruitValue.Name = fruitGiven
-                            fruitValue.Value = fruitGiven
-                            fruitValue.Parent = child
-                            success = true
-                        end
-                    end)
-                    if success then return end
-                end
-            end
-        end
-        
-        -- Method 8: Try common Blox Fruits executor methods
-        -- Check for executor-specific functions
-        local executorFunctions = {
-            "StoreFruit", "BuyFruit", "PurchaseFruit", "GiveFruit",
-            "AddFruit", "GetFruit", "EquipFruit"
-        }
-        
-        for _, funcName in pairs(executorFunctions) do
-            if _G[funcName] then
-                print("Found _G." .. funcName)
-                pcall(function()
-                    _G[funcName](fruitGiven)
-                    success = true
-                end)
-                if success then return end
-            end
-            
-            if getgenv and getgenv()[funcName] then
-                print("Found getgenv()." .. funcName)
-                pcall(function()
-                    getgenv()[funcName](fruitGiven)
-                    success = true
-                end)
-                if success then return end
-            end
-        end
-        
-        -- Method 9: Try hooking into game's purchase system
-        print("Trying to hook into purchase system...")
-        local purchaseRemotes = {
-            "PurchaseFruit", "BuyFruit", "StoreFruit", "FruitStore",
-            "FruitPurchase", "BuyItem", "PurchaseItem"
-        }
-        
-        for _, remoteName in pairs(purchaseRemotes) do
-            local remote = ReplicatedStorage:FindFirstChild(remoteName, true)
-            if remote and (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) then
-                print("Found purchase remote: " .. remote:GetFullName())
+        warn("Scanning all remotes in Remotes folder...")
+        for _, remote in pairs(remotes:GetDescendants()) do
+            if (remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction")) and
+               (string.find(remote.Name:lower(), "fruit") or 
+                string.find(remote.Name:lower(), "store") or
+                string.find(remote.Name:lower(), "purchase") or
+                string.find(remote.Name:lower(), "buy")) then
+                warn("Trying remote: " .. remote:GetFullName())
                 pcall(function()
                     if remote:IsA("RemoteEvent") then
                         remote:FireServer(fruitGiven)
+                        wait(0.1)
+                        remote:FireServer(fruitGiven, "Mythical")
+                        wait(0.1)
+                        remote:FireServer({fruitGiven})
                     else
                         remote:InvokeServer(fruitGiven)
+                        wait(0.1)
+                        remote:InvokeServer(fruitGiven, "Mythical")
                     end
                     success = true
                 end)
-                if success then return end
+                if success then return true end
             end
         end
+        return false
     end
     
-    -- Try to give the fruit
-    local success, err = pcall(tryGiveFruit)
-    
-    if not success then
-        print("Error in tryGiveFruit: " .. tostring(err))
-    end
-    
-    -- Print debug info
-    print("=== Debug Info ===")
-    for _, info in pairs(debugInfo) do
-        print(info)
-    end
-    print("=== End Debug Info ===")
-    
-    -- Update button text based on result
-    if success then
+    -- Try all methods
+    if tryStoreFruit() then
         button.Text = "Fruit Given: " .. fruitGiven
-        print("SUCCESS: Fruit given!")
+        warn("SUCCESS: Fruit given via remote!")
         wait(2)
         button.Text = "Give Mythical Fruit"
-    else
-        button.Text = "Failed - Check Console"
-        print("FAILED: Could not give fruit. Check console for details.")
-        print("Fruit attempted: " .. fruitGiven)
-        wait(2)
-        button.Text = "Give Mythical Fruit"
+        return
     end
+    
+    if tryCommF() then
+        button.Text = "Fruit Given: " .. fruitGiven
+        warn("SUCCESS: Fruit given via CommF_!")
+        wait(2)
+        button.Text = "Give Mythical Fruit"
+        return
+    end
+    
+    if tryDirectInventory() then
+        button.Text = "Fruit Added: " .. fruitGiven
+        warn("SUCCESS: Fruit added to inventory!")
+        wait(2)
+        button.Text = "Give Mythical Fruit"
+        return
+    end
+    
+    if tryModuleMethod() then
+        button.Text = "Fruit Given: " .. fruitGiven
+        warn("SUCCESS: Fruit given via module!")
+        wait(2)
+        button.Text = "Give Mythical Fruit"
+        return
+    end
+    
+    if tryAllRemotes() then
+        button.Text = "Fruit Given: " .. fruitGiven
+        warn("SUCCESS: Fruit given via remote scan!")
+        wait(2)
+        button.Text = "Give Mythical Fruit"
+        return
+    end
+    
+    -- Failed
+    button.Text = "Failed - Check Console"
+    warn("FAILED: Could not give fruit. Tried all methods.")
+    warn("Fruit attempted: " .. fruitGiven)
+    wait(2)
+    button.Text = "Give Mythical Fruit"
 end
 
 -- Connect button click
@@ -329,32 +367,56 @@ end)
 
 -- Function to scan and list all remotes (for debugging)
 local function scanRemotes()
-    print("\n=== SCANNING FOR REMOTES ===")
+    warn("\n=== SCANNING FOR REMOTES ===")
     local remoteCount = 0
+    local fruitRemotes = {}
     
     -- Scan ReplicatedStorage
     for _, child in pairs(ReplicatedStorage:GetDescendants()) do
         if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
             remoteCount = remoteCount + 1
-            if string.find(child.Name:lower(), "fruit") or 
-               string.find(child.Name:lower(), "store") or
-               string.find(child.Name:lower(), "purchase") or
-               string.find(child.Name:lower(), "buy") or
-               string.find(child.Name:lower(), "inventory") then
-                print(">>> FOUND POTENTIAL: " .. child:GetFullName())
+            local nameLower = child.Name:lower()
+            if string.find(nameLower, "fruit") or 
+               string.find(nameLower, "store") or
+               string.find(nameLower, "purchase") or
+               string.find(nameLower, "buy") or
+               string.find(nameLower, "inventory") or
+               string.find(nameLower, "comm") then
+                table.insert(fruitRemotes, child:GetFullName())
+                warn(">>> POTENTIAL: " .. child:GetFullName() .. " (" .. child.ClassName .. ")")
             end
         end
     end
     
-    print("Total remotes found in ReplicatedStorage: " .. remoteCount)
-    print("=== END SCAN ===\n")
+    warn("Total remotes found: " .. remoteCount)
+    warn("Fruit-related remotes found: " .. #fruitRemotes)
+    warn("=== END SCAN ===\n")
+    
+    -- Also check player data structure
+    wait(1)
+    warn("=== CHECKING PLAYER DATA ===")
+    local playerData = player:FindFirstChild("_stats") or 
+                      player:FindFirstChild("Data") or
+                      player:FindFirstChild("PlayerData")
+    if playerData then
+        warn("Found player data: " .. playerData:GetFullName())
+        for _, child in pairs(playerData:GetDescendants()) do
+            if string.find(child.Name:lower(), "fruit") or 
+               string.find(child.Name:lower(), "inventory") then
+                warn(">>> Found: " .. child:GetFullName() .. " (" .. child.ClassName .. ")")
+            end
+        end
+    else
+        warn("No player data found yet")
+    end
+    warn("=== END PLAYER DATA CHECK ===\n")
 end
 
 -- Run scan on load
 spawn(function()
-    wait(2) -- Wait for game to load
+    wait(3) -- Wait for game to load
     scanRemotes()
 end)
 
-print("Mythical Fruit GUI loaded! Click the button to get a random mythical fruit.")
-print("Check console for remote scan results in 2 seconds...")
+warn("Mythical Fruit GUI loaded! Click the button to get a random mythical fruit.")
+warn("Check console (warnings) for remote scan results in 3 seconds...")

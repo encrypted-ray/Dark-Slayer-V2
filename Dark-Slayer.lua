@@ -1,4 +1,4 @@
--- DARK SLAYER V2 | REDZ HUB STYLE UI (FIXED)
+-- DARK SLAYER V2 | REDZ HUB STYLE | MOBILE FIXED
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -35,42 +35,46 @@ if CoreGui:FindFirstChild("DarkSlayerRedz") then
 end
 
 -- GUI ROOT
-local gui = Instance.new("ScreenGui", CoreGui)
+local gui = Instance.new("ScreenGui")
 gui.Name = "DarkSlayerRedz"
 gui.ResetOnSpawn = false
+gui.Parent = CoreGui
 
--- MAIN FRAME
+local isMobile = UIS.TouchEnabled
+
+-- MAIN FRAME (MOBILE SAFE)
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.fromScale(0.45, 0.55)
-main.Position = UDim2.fromScale(0.275, 0.22)
+main.Size = isMobile and UDim2.fromOffset(360, 260) or UDim2.fromOffset(620, 380)
+main.Position = UDim2.fromScale(0.5, 0.5)
+main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.BackgroundColor3 = Color3.fromRGB(16,16,16)
 main.BorderSizePixel = 0
 main.Active = true
-main.Draggable = true
+main.Draggable = not isMobile
 Instance.new("UICorner", main).CornerRadius = UDim.new(0,14)
 
 -- TITLE BAR
 local titleBar = Instance.new("Frame", main)
-titleBar.Size = UDim2.new(1,0,0,40)
+titleBar.Size = UDim2.new(1,0,0,36)
 titleBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
 titleBar.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", titleBar)
-title.Size = UDim2.new(1,-50,1,0)
+title.Size = UDim2.new(1,-40,1,0)
 title.Position = UDim2.new(0,10,0,0)
 title.BackgroundTransparency = 1
 title.Text = "DARK SLAYER V2"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 16
+title.TextSize = 15
 title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 local close = Instance.new("TextButton", titleBar)
-close.Size = UDim2.fromOffset(35,25)
-close.Position = UDim2.new(1,-40,0.5,-12)
+close.Size = UDim2.fromOffset(28,22)
+close.Position = UDim2.new(1,-32,0.5,-11)
 close.Text = "✕"
 close.Font = Enum.Font.GothamBold
-close.TextSize = 16
+close.TextSize = 14
 close.TextColor3 = Color3.fromRGB(255,90,90)
 close.BackgroundColor3 = Color3.fromRGB(35,35,35)
 close.BorderSizePixel = 0
@@ -82,50 +86,54 @@ end)
 
 -- SIDEBAR
 local sidebar = Instance.new("Frame", main)
-sidebar.Position = UDim2.new(0,0,0,40)
-sidebar.Size = UDim2.new(0,140,1,-40)
+sidebar.Position = UDim2.new(0,0,0,36)
+sidebar.Size = UDim2.fromOffset(110, main.Size.Y.Offset - 36)
 sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 sidebar.BorderSizePixel = 0
 
-local sidePadding = Instance.new("UIPadding", sidebar)
-sidePadding.PaddingTop = UDim.new(0,8)
+local sidePad = Instance.new("UIPadding", sidebar)
+sidePad.PaddingTop = UDim.new(0,6)
 
 local sideList = Instance.new("UIListLayout", sidebar)
 sideList.Padding = UDim.new(0,6)
-sideList.HorizontalAlignment = Center
+sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
--- PAGES HOLDER
+-- CONTENT HOLDER
 local pages = Instance.new("Frame", main)
-pages.Position = UDim2.new(0,140,0,40)
-pages.Size = UDim2.new(1,-140,1,-40)
+pages.Position = UDim2.fromOffset(110, 36)
+pages.Size = UDim2.new(1,-110,1,-36)
 pages.BackgroundTransparency = 1
 
 -- PAGE SYSTEM
 local Pages = {}
 
 local function CreatePage(name)
-	local page = Instance.new("Frame", pages)
-	page.Size = UDim2.fromScale(1,1)
-	page.Visible = false
-	page.BackgroundTransparency = 1
+	local scroll = Instance.new("ScrollingFrame", pages)
+	scroll.Size = UDim2.fromScale(1,1)
+	scroll.CanvasSize = UDim2.new(0,0,0,0)
+	scroll.ScrollBarImageTransparency = 0.6
+	scroll.Visible = false
+	scroll.BackgroundTransparency = 1
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-	local pad = Instance.new("UIPadding", page)
+	local pad = Instance.new("UIPadding", scroll)
 	pad.PaddingTop = UDim.new(0,10)
 	pad.PaddingLeft = UDim.new(0,10)
+	pad.PaddingRight = UDim.new(0,10)
 
-	local list = Instance.new("UIListLayout", page)
+	local list = Instance.new("UIListLayout", scroll)
 	list.Padding = UDim.new(0,8)
 
-	Pages[name] = page
-	return page
+	Pages[name] = scroll
+	return scroll
 end
 
 local function CreateTab(name)
 	local b = Instance.new("TextButton", sidebar)
-	b.Size = UDim2.new(1,-16,0,36)
+	b.Size = UDim2.new(1,-12,0,34)
 	b.Text = name
 	b.Font = Enum.Font.GothamMedium
-	b.TextSize = 14
+	b.TextSize = 13
 	b.TextColor3 = Color3.new(1,1,1)
 	b.BackgroundColor3 = Color3.fromRGB(30,30,30)
 	b.BorderSizePixel = 0
@@ -139,10 +147,10 @@ end
 
 local function PageButton(parent, text, color)
 	local b = Instance.new("TextButton", parent)
-	b.Size = UDim2.new(1,-20,0,36)
+	b.Size = UDim2.new(1,0,0,34)
 	b.Text = text
 	b.Font = Enum.Font.GothamMedium
-	b.TextSize = 14
+	b.TextSize = 13
 	b.TextColor3 = Color3.new(1,1,1)
 	b.BackgroundColor3 = color or Color3.fromRGB(32,32,32)
 	b.BorderSizePixel = 0
@@ -150,7 +158,7 @@ local function PageButton(parent, text, color)
 	return b
 end
 
--- CREATE PAGES
+-- CREATE PAGES + TABS
 local ESPPage = CreatePage("ESP")
 local MovePage = CreatePage("Movement")
 local UtilPage = CreatePage("Utility")
@@ -239,7 +247,7 @@ mythBtn.MouseButton1Click:Connect(function()
 	mythBtn.Text = "STOP ON MYTH : "..(State.StopMyth and "ON" or "OFF")
 end)
 
--- LOOPS
+-- CORE LOOPS
 RunService.Heartbeat:Connect(function(dt)
 	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end

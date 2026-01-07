@@ -4,6 +4,8 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -103,6 +105,27 @@ local stopCorner = Instance.new("UICorner")
 stopCorner.CornerRadius = UDim.new(0, 8)
 stopCorner.Parent = stopButton
 
+-- Get Kitsune Button
+local kitsuneButton = Instance.new("TextButton")
+kitsuneButton.Name = "KitsuneButton"
+kitsuneButton.Size = UDim2.new(1, -40, 0, 45)
+kitsuneButton.Position = UDim2.new(0, 20, 1, -15)
+kitsuneButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+kitsuneButton.BorderSizePixel = 0
+kitsuneButton.Text = "GET KITSUNE FRUIT"
+kitsuneButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+kitsuneButton.TextSize = 18
+kitsuneButton.Font = Enum.Font.GothamBold
+kitsuneButton.Parent = mainFrame
+
+local kitsuneCorner = Instance.new("UICorner")
+kitsuneCorner.CornerRadius = UDim.new(0, 8)
+kitsuneCorner.Parent = kitsuneButton
+
+-- Adjust main frame size to fit new button
+mainFrame.Size = UDim2.new(0, 400, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -175)
+
 -- Button hover effects
 local function createHoverEffect(button, hoverColor, normalColor)
     button.MouseEnter:Connect(function()
@@ -118,6 +141,7 @@ end
 
 createHoverEffect(rollButton, Color3.fromRGB(0, 200, 255), Color3.fromRGB(0, 162, 255))
 createHoverEffect(stopButton, Color3.fromRGB(255, 80, 80), Color3.fromRGB(255, 50, 50))
+createHoverEffect(kitsuneButton, Color3.fromRGB(255, 255, 100), Color3.fromRGB(255, 215, 0))
 
 -- Rolling state
 local isRolling = false
@@ -228,11 +252,179 @@ local function stopRoll()
     end
 end
 
+-- Function to force give Kitsune fruit to player inventory
+local function giveKitsuneFruit()
+    kitsuneButton.Text = "GIVING KITSUNE..."
+    kitsuneButton.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+    
+    local success = false
+    local attempts = 0
+    local maxAttempts = 5
+    
+    -- Method 1: Try to find and use RemoteEvents
+    pcall(function()
+        local remotes = ReplicatedStorage:FindFirstChild("Remotes")
+        if remotes then
+            -- Try common remote event names
+            local purchaseRemote = remotes:FindFirstChild("PurchaseFruit") or remotes:FindFirstChild("BuyFruit") or remotes:FindFirstChild("StorePurchase")
+            if purchaseRemote then
+                purchaseRemote:FireServer("Kitsune")
+                success = true
+            end
+            
+            -- Try fruit inventory remote
+            local fruitRemote = remotes:FindFirstChild("StoreFruit") or remotes:FindFirstChild("AddFruit") or remotes:FindFirstChild("GiveFruit")
+            if fruitRemote then
+                fruitRemote:FireServer("Kitsune")
+                success = true
+            end
+        end
+    end)
+    
+    -- Method 2: Try to find Blox Fruits specific remotes
+    pcall(function()
+        local bfRemotes = ReplicatedStorage:FindFirstChild("_G")
+        if bfRemotes then
+            local purchase = bfRemotes:FindFirstChild("PurchaseFruit")
+            if purchase then
+                purchase:FireServer("Kitsune")
+                success = true
+            end
+        end
+    end)
+    
+    -- Method 3: Try to find NPCs and interact with them
+    pcall(function()
+        local npcs = Workspace:GetDescendants()
+        for _, npc in ipairs(npcs) do
+            if npc.Name == "Blox Fruit Dealer" or npc.Name == "Blox Fruit Dealer's Cousin" or npc.Name:find("Dealer") then
+                local humanoid = npc:FindFirstChild("HumanoidRootPart")
+                if humanoid then
+                    -- Try to trigger purchase
+                    local clickDetector = npc:FindFirstChild("ClickDetector")
+                    if clickDetector then
+                        fireclickdetector(clickDetector)
+                        wait(0.5)
+                        -- Try to find purchase GUI and select Kitsune
+                        local purchaseGui = playerGui:FindFirstChild("PurchaseFruitGui") or playerGui:FindFirstChild("FruitShopGui")
+                        if purchaseGui then
+                            local kitsuneButton = purchaseGui:FindFirstChild("Kitsune") or purchaseGui:FindFirstChild("KitsuneButton")
+                            if kitsuneButton then
+                                kitsuneButton:FireServer()
+                                success = true
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+    
+    -- Method 4: Direct inventory manipulation (if accessible)
+    pcall(function()
+        local playerData = player:FindFirstChild("DataFolder") or player:FindFirstChild("PlayerData")
+        if playerData then
+            local fruits = playerData:FindFirstChild("Fruits") or playerData:FindFirstChild("Inventory") or playerData:FindFirstChild("BloxFruits")
+            if fruits then
+                -- Try to add Kitsune to inventory
+                local kitsuneValue = Instance.new("StringValue")
+                kitsuneValue.Name = "Kitsune"
+                kitsuneValue.Value = "Kitsune"
+                kitsuneValue.Parent = fruits
+                success = true
+            end
+        end
+    end)
+    
+    -- Method 5: Try remote events in different locations
+    pcall(function()
+        local allRemotes = {}
+        
+        -- Search ReplicatedStorage
+        local function searchForRemotes(parent)
+            for _, child in ipairs(parent:GetDescendants()) do
+                if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") then
+                    table.insert(allRemotes, child)
+                end
+            end
+        end
+        
+        searchForRemotes(ReplicatedStorage)
+        searchForRemotes(Workspace)
+        
+        -- Try common patterns
+        for _, remote in ipairs(allRemotes) do
+            if remote.Name:find("Fruit") or remote.Name:find("Purchase") or remote.Name:find("Store") or remote.Name:find("Buy") then
+                pcall(function()
+                    if remote:IsA("RemoteEvent") then
+                        remote:FireServer("Kitsune")
+                        remote:FireServer("Kitsune", player)
+                    elseif remote:IsA("RemoteFunction") then
+                        remote:InvokeServer("Kitsune")
+                        remote:InvokeServer("Kitsune", player)
+                    end
+                    success = true
+                end)
+            end
+        end
+    end)
+    
+    -- Method 6: Try to find and use the game's main module
+    pcall(function()
+        local modules = ReplicatedStorage:FindFirstChild("Modules") or ReplicatedStorage:FindFirstChild("Shared")
+        if modules then
+            local fruitModule = modules:FindFirstChild("FruitHandler") or modules:FindFirstChild("FruitManager") or modules:FindFirstChild("Inventory")
+            if fruitModule and fruitModule:IsA("ModuleScript") then
+                local fruitHandler = require(fruitModule)
+                if fruitHandler and type(fruitHandler) == "table" then
+                    if fruitHandler.AddFruit then
+                        fruitHandler.AddFruit(player, "Kitsune")
+                        success = true
+                    elseif fruitHandler.GiveFruit then
+                        fruitHandler.GiveFruit(player, "Kitsune")
+                        success = true
+                    end
+                end
+            end
+        end
+    end)
+    
+    -- Feedback
+    if success then
+        kitsuneButton.Text = "KITSUNE GIVEN!"
+        kitsuneButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        fruitLabel.Text = "Kitsune fruit added to inventory!"
+        fruitLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+        
+        -- Reset after 3 seconds
+        wait(3)
+        kitsuneButton.Text = "GET KITSUNE FRUIT"
+        kitsuneButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+        fruitLabel.Text = "Press Roll to start!"
+        fruitLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    else
+        kitsuneButton.Text = "FAILED - TRY AGAIN"
+        kitsuneButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+        fruitLabel.Text = "Could not give Kitsune. Game structure may have changed."
+        fruitLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        
+        -- Reset after 3 seconds
+        wait(3)
+        kitsuneButton.Text = "GET KITSUNE FRUIT"
+        kitsuneButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+        fruitLabel.Text = "Press Roll to start!"
+        fruitLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+    
+    print("Kitsune fruit give attempt completed. Success:", success)
+end
+
 -- Connect button events
 rollButton.MouseButton1Click:Connect(startRoll)
 stopButton.MouseButton1Click:Connect(stopRoll)
+kitsuneButton.MouseButton1Click:Connect(giveKitsuneFruit)
 
--- Optional: Keyboard shortcuts (R to roll, S to stop)
+-- Optional: Keyboard shortcuts (R to roll, S to stop, K for Kitsune)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
@@ -240,7 +432,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         startRoll()
     elseif input.KeyCode == Enum.KeyCode.S then
         stopRoll()
+    elseif input.KeyCode == Enum.KeyCode.K then
+        giveKitsuneFruit()
     end
 end)
 
-print("Fruit Roll GUI loaded! Press R to roll, S to stop, or use the buttons.")
+print("Fruit Roll GUI loaded! Press R to roll, S to stop, K for Kitsune, or use the buttons.")

@@ -1,4 +1,4 @@
--- DARK SLAYER V2 | REDZ HUB STYLE | TOGGLE EDITION
+-- DARK SLAYER V2 | REDZ HUB STYLE | EXPANDED GACHA
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -7,8 +7,6 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -16,35 +14,48 @@ local lp = Players.LocalPlayer
 repeat task.wait() until lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 local cam = workspace.CurrentCamera
 
+------------------------------------------------------------
 -- STATE
+------------------------------------------------------------
 local State = {
+	ESP = false,
 	Fly = false,
 	Noclip = false,
 	InfJump = false,
-	ESP = false,
 	Frozen = false,
-	AutoWinter = false,
-	StopMyth = false,
 	FlySpeed = 120,
-	FrozenCFrame = nil,
-	CandyCost = 100
+
+	-- WINTER GACHA
+	AutoWinter = false,
+	StopWinterMyth = false,
+	WinterCandyCost = 100,
+
+	-- REGULAR GACHA
+	AutoFruit = false,
+	StopFruitMyth = false
 }
 
+------------------------------------------------------------
 -- CLEANUP
+------------------------------------------------------------
 if CoreGui:FindFirstChild("DarkSlayerRedz") then
 	CoreGui.DarkSlayerRedz:Destroy()
 end
 
+------------------------------------------------------------
 -- GUI ROOT
+------------------------------------------------------------
 local gui = Instance.new("ScreenGui", CoreGui)
 gui.Name = "DarkSlayerRedz"
 gui.ResetOnSpawn = false
 
 local isMobile = UIS.TouchEnabled
 
+------------------------------------------------------------
 -- MAIN FRAME
+------------------------------------------------------------
 local main = Instance.new("Frame", gui)
-main.Size = isMobile and UDim2.fromOffset(380,270) or UDim2.fromOffset(640,400)
+main.Size = isMobile and UDim2.fromOffset(380,270) or UDim2.fromOffset(650,420)
 main.Position = UDim2.fromScale(0.5,0.5)
 main.AnchorPoint = Vector2.new(0.5,0.5)
 main.BackgroundColor3 = Color3.fromRGB(16,16,16)
@@ -53,12 +64,12 @@ main.Active = true
 main.Draggable = not isMobile
 Instance.new("UICorner", main).CornerRadius = UDim.new(0,14)
 
-----------------------------------------------------------------
+------------------------------------------------------------
 -- TITLE BAR
-----------------------------------------------------------------
+------------------------------------------------------------
 local titleBar = Instance.new("Frame", main)
 titleBar.Size = UDim2.new(1,0,0,38)
-titleBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+titleBar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 titleBar.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", titleBar)
@@ -86,9 +97,9 @@ close.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
 
-----------------------------------------------------------------
+------------------------------------------------------------
 -- SIDEBAR
-----------------------------------------------------------------
+------------------------------------------------------------
 local sidebar = Instance.new("Frame", main)
 sidebar.Position = UDim2.new(0,0,0,38)
 sidebar.Size = UDim2.fromOffset(120, main.Size.Y.Offset - 38)
@@ -100,21 +111,19 @@ sideList.Padding = UDim.new(0,6)
 sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 sideList.VerticalAlignment = Enum.VerticalAlignment.Center
 
-----------------------------------------------------------------
+------------------------------------------------------------
 -- PAGES
-----------------------------------------------------------------
+------------------------------------------------------------
 local pages = Instance.new("Frame", main)
 pages.Position = UDim2.fromOffset(120,38)
 pages.Size = UDim2.new(1,-120,1,-38)
 pages.BackgroundTransparency = 1
 
-local Pages = {}
-local Tabs = {}
+local Pages, Tabs = {}, {}
 
 local function CreatePage(name)
 	local scroll = Instance.new("ScrollingFrame", pages)
 	scroll.Size = UDim2.fromScale(1,1)
-	scroll.CanvasSize = UDim2.new(0,0,0,0)
 	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	scroll.ScrollBarImageTransparency = 0.7
 	scroll.BackgroundTransparency = 1
@@ -154,9 +163,9 @@ local function CreateTab(name)
 	return b
 end
 
-----------------------------------------------------------------
--- TOGGLE CREATOR (REDZ STYLE)
-----------------------------------------------------------------
+------------------------------------------------------------
+-- TOGGLE (REDZ STYLE)
+------------------------------------------------------------
 local function CreateToggle(parent, text, default, callback)
 	local holder = Instance.new("Frame", parent)
 	holder.Size = UDim2.new(1,0,0,42)
@@ -174,14 +183,14 @@ local function CreateToggle(parent, text, default, callback)
 	label.TextColor3 = Color3.new(1,1,1)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 
-	local toggleBg = Instance.new("Frame", holder)
-	toggleBg.Size = UDim2.fromOffset(40,20)
-	toggleBg.Position = UDim2.new(1,-52,0.5,-10)
-	toggleBg.BackgroundColor3 = default and Color3.fromRGB(60,160,255) or Color3.fromRGB(60,60,60)
-	toggleBg.BorderSizePixel = 0
-	Instance.new("UICorner", toggleBg).CornerRadius = UDim.new(1,0)
+	local bg = Instance.new("Frame", holder)
+	bg.Size = UDim2.fromOffset(40,20)
+	bg.Position = UDim2.new(1,-52,0.5,-10)
+	bg.BackgroundColor3 = default and Color3.fromRGB(60,160,255) or Color3.fromRGB(60,60,60)
+	bg.BorderSizePixel = 0
+	Instance.new("UICorner", bg).CornerRadius = UDim.new(1,0)
 
-	local knob = Instance.new("Frame", toggleBg)
+	local knob = Instance.new("Frame", bg)
 	knob.Size = UDim2.fromOffset(16,16)
 	knob.Position = default and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
 	knob.BackgroundColor3 = Color3.new(1,1,1)
@@ -190,9 +199,9 @@ local function CreateToggle(parent, text, default, callback)
 
 	local state = default
 
-	local function Set(val)
-		state = val
-		TweenService:Create(toggleBg,TweenInfo.new(0.2),{
+	local function Set(v)
+		state = v
+		TweenService:Create(bg,TweenInfo.new(0.2),{
 			BackgroundColor3 = state and Color3.fromRGB(60,160,255) or Color3.fromRGB(60,60,60)
 		}):Play()
 		TweenService:Create(knob,TweenInfo.new(0.2),{
@@ -206,16 +215,14 @@ local function CreateToggle(parent, text, default, callback)
 			Set(not state)
 		end
 	end)
-
-	return Set
 end
 
-----------------------------------------------------------------
--- CREATE PAGES
-----------------------------------------------------------------
-local ESPPage = CreatePage("ESP")
-local MovePage = CreatePage("Movement")
-local UtilPage = CreatePage("Utility")
+------------------------------------------------------------
+-- CREATE PAGES / TABS
+------------------------------------------------------------
+local ESPPage   = CreatePage("ESP")
+local MovePage  = CreatePage("Movement")
+local UtilPage  = CreatePage("Utility")
 local GachaPage = CreatePage("Gacha")
 
 CreateTab("ESP")
@@ -226,26 +233,26 @@ CreateTab("Gacha")
 Pages.ESP.Visible = true
 Tabs.ESP.BackgroundColor3 = Color3.fromRGB(45,45,45)
 
-----------------------------------------------------------------
--- ESP (REAL)
-----------------------------------------------------------------
+------------------------------------------------------------
+-- ESP
+------------------------------------------------------------
 local Highlights = {}
 
-local function ApplyESP(player)
-	if player == lp then return end
-	local function onChar(char)
-		if Highlights[player] then Highlights[player]:Destroy() end
+local function ApplyESP(p)
+	if p == lp then return end
+	local function onChar(c)
+		if Highlights[p] then Highlights[p]:Destroy() end
 		local h = Instance.new("Highlight")
 		h.FillColor = Color3.fromRGB(255,80,80)
 		h.OutlineColor = Color3.new(1,1,1)
 		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 		h.Enabled = State.ESP
-		h.Adornee = char
-		h.Parent = char
-		Highlights[player] = h
+		h.Adornee = c
+		h.Parent = c
+		Highlights[p] = h
 	end
-	player.CharacterAdded:Connect(onChar)
-	if player.Character then onChar(player.Character) end
+	p.CharacterAdded:Connect(onChar)
+	if p.Character then onChar(p.Character) end
 end
 
 for _,p in ipairs(Players:GetPlayers()) do ApplyESP(p) end
@@ -256,9 +263,9 @@ CreateToggle(ESPPage,"Player ESP",false,function(v)
 	for _,h in pairs(Highlights) do if h then h.Enabled = v end end
 end)
 
-----------------------------------------------------------------
+------------------------------------------------------------
 -- MOVEMENT
-----------------------------------------------------------------
+------------------------------------------------------------
 CreateToggle(MovePage,"Fly",false,function(v)
 	State.Fly = v
 	lp.Character.Humanoid.PlatformStand = v
@@ -282,44 +289,66 @@ UIS.JumpRequest:Connect(function()
 	end
 end)
 
-----------------------------------------------------------------
+------------------------------------------------------------
 -- UTILITY
-----------------------------------------------------------------
+------------------------------------------------------------
 CreateToggle(UtilPage,"Freeze Character",false,function(v)
 	State.Frozen = v
-	State.FrozenCFrame = v and lp.Character.HumanoidRootPart.CFrame or nil
 end)
 
-----------------------------------------------------------------
--- GACHA
-----------------------------------------------------------------
+------------------------------------------------------------
+-- GACHA (EXPANDED)
+------------------------------------------------------------
 CreateToggle(GachaPage,"Auto Winter Gacha",false,function(v)
 	State.AutoWinter = v
 end)
 
-CreateToggle(GachaPage,"Stop On Mythic",false,function(v)
-	State.StopMyth = v
+CreateToggle(GachaPage,"Stop Winter On Mythical",false,function(v)
+	State.StopWinterMyth = v
 end)
 
+CreateToggle(GachaPage,"Auto Random Fruit Spin",false,function(v)
+	State.AutoFruit = v
+end)
+
+CreateToggle(GachaPage,"Stop Fruit On Mythical",false,function(v)
+	State.StopFruitMyth = v
+end)
+
+------------------------------------------------------------
+-- GACHA LOOPS
+------------------------------------------------------------
 task.spawn(function()
 	while task.wait(1) do
 		if State.AutoWinter then
 			pcall(function()
-				ReplicatedStorage.Remotes.RollWinterGacha:FireServer(State.CandyCost)
+				ReplicatedStorage.Remotes.RollWinterGacha:FireServer(State.WinterCandyCost)
 			end)
 		end
 	end
 end)
 
-----------------------------------------------------------------
--- CORE LOOPS
-----------------------------------------------------------------
+-- ⚠️ CHANGE REMOTE NAME HERE IF YOUR GAME USES A DIFFERENT ONE
+local FruitGachaRemote = ReplicatedStorage.Remotes:FindFirstChild("RollFruitGacha")
+
+task.spawn(function()
+	while task.wait(1.2) do
+		if State.AutoFruit and FruitGachaRemote then
+			pcall(function()
+				FruitGachaRemote:FireServer()
+			end)
+		end
+	end
+end)
+
+------------------------------------------------------------
+-- CORE LOOP
+------------------------------------------------------------
 RunService.Heartbeat:Connect(function(dt)
 	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 
-	if State.Frozen and State.FrozenCFrame then
-		hrp.CFrame = State.FrozenCFrame
+	if State.Frozen then
 		hrp.AssemblyLinearVelocity = Vector3.zero
 	end
 

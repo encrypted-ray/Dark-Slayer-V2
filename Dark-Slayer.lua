@@ -1,4 +1,4 @@
--- KRAKEN HUB | SSS-TIER REDZ STYLE UI (FIXED FIT)
+-- KRAKEN HUB | SSS-TIER REDZ STYLE UI (SHORTER + GACHA LOGIC)
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -11,6 +11,7 @@ local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local lp = Players.LocalPlayer
 local cam = workspace.CurrentCamera
@@ -21,20 +22,25 @@ local cam = workspace.CurrentCamera
 local ACCENT = Color3.fromRGB(155,89,255)
 local ACCENT_DARK = Color3.fromRGB(90,55,160)
 
-local R_MAIN = 20
-local R_SECTION = 18
-local R_BUTTON = 16
-local R_TOGGLE = 18
-local R_PILL = 999
-
 ----------------------------------------------------------------
 -- STATE
 ----------------------------------------------------------------
 local State = {
+	-- Player
 	ESP = false,
 	Fly = false,
 	Noclip = false,
-	InfJump = false
+	InfJump = false,
+
+	-- Visuals
+	Fullbright = false,
+	NoFog = false,
+	CustomFOV = false,
+
+	-- Gacha
+	AutoFruit = false,
+	AutoWinter = false,
+	GachaDelay = 2
 }
 
 ----------------------------------------------------------------
@@ -52,11 +58,10 @@ gui.Name = "KrakenHub"
 gui.ResetOnSpawn = false
 
 ----------------------------------------------------------------
--- MAIN FRAME (FIXED SIZE)
+-- MAIN FRAME (SHORTER HEIGHT)
 ----------------------------------------------------------------
-local MAIN_W, MAIN_H = 560, 360
-local TITLE_H = 36
-local SIDE_W = 120
+local MAIN_W, MAIN_H = 560, 330
+local TITLE_H, SIDE_W = 36, 120
 
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.fromOffset(MAIN_W, MAIN_H)
@@ -66,7 +71,7 @@ main.BackgroundColor3 = Color3.fromRGB(16,16,16)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
-Instance.new("UICorner", main).CornerRadius = UDim.new(0,R_MAIN)
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,20)
 
 local stroke = Instance.new("UIStroke", main)
 stroke.Color = ACCENT
@@ -79,10 +84,10 @@ local titleBar = Instance.new("Frame", main)
 titleBar.Size = UDim2.new(1,0,0,TITLE_H)
 titleBar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 titleBar.BorderSizePixel = 0
-Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,R_SECTION)
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,18)
 
 local title = Instance.new("TextLabel", titleBar)
-title.Size = UDim2.new(1,-90,1,0)
+title.Size = UDim2.new(1,-80,1,0)
 title.Position = UDim2.new(0,12,0,0)
 title.BackgroundTransparency = 1
 title.Text = "Kraken Hub"
@@ -91,42 +96,35 @@ title.TextSize = 13
 title.TextColor3 = ACCENT
 title.TextXAlignment = Enum.TextXAlignment.Left
 
-local function TitleBtn(txt,x)
-	local b = Instance.new("TextButton", titleBar)
-	b.Size = UDim2.fromOffset(24,20)
-	b.Position = UDim2.new(1,x,0.5,-10)
-	b.Text = txt
-	b.Font = Enum.Font.GothamBold
-	b.TextSize = 14
-	b.TextColor3 = Color3.new(1,1,1)
-	b.BackgroundColor3 = Color3.fromRGB(32,32,32)
-	b.BorderSizePixel = 0
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0,R_BUTTON)
-	return b
-end
-
-TitleBtn("-", -60)
-local close = TitleBtn("X", -30)
+local close = Instance.new("TextButton", titleBar)
+close.Size = UDim2.fromOffset(24,20)
+close.Position = UDim2.new(1,-30,0.5,-10)
+close.Text = "X"
+close.Font = Enum.Font.GothamBold
+close.TextSize = 14
+close.TextColor3 = Color3.new(1,1,1)
 close.BackgroundColor3 = Color3.fromRGB(90,40,40)
+close.BorderSizePixel = 0
+Instance.new("UICorner", close).CornerRadius = UDim.new(0,14)
 close.MouseButton1Click:Connect(function() gui:Destroy() end)
 
 ----------------------------------------------------------------
--- SIDEBAR (FIXED WIDTH)
+-- SIDEBAR
 ----------------------------------------------------------------
 local sidebar = Instance.new("Frame", main)
 sidebar.Position = UDim2.new(0,0,0,TITLE_H)
 sidebar.Size = UDim2.fromOffset(SIDE_W, MAIN_H - TITLE_H)
 sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 sidebar.BorderSizePixel = 0
-Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,R_SECTION)
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,18)
 
 local sideList = Instance.new("UIListLayout", sidebar)
-sideList.Padding = UDim.new(0,6)
+sideList.Padding = UDim.new(0,5)
 sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 sideList.VerticalAlignment = Enum.VerticalAlignment.Center
 
 ----------------------------------------------------------------
--- PAGES CONTAINER (CLAMPED)
+-- PAGES
 ----------------------------------------------------------------
 local pages = Instance.new("Frame", main)
 pages.Position = UDim2.new(0,SIDE_W,0,TITLE_H)
@@ -138,20 +136,19 @@ local Pages, Tabs = {}, {}
 local function CreatePage(name)
 	local s = Instance.new("ScrollingFrame", pages)
 	s.Size = UDim2.fromScale(1,1)
-	s.CanvasSize = UDim2.new(0,0,0,0)
 	s.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	s.ScrollBarImageTransparency = 0.9
 	s.BackgroundTransparency = 1
 	s.Visible = false
 
 	local pad = Instance.new("UIPadding", s)
-	pad.PaddingTop = UDim.new(0,12)
-	pad.PaddingLeft = UDim.new(0,12)
-	pad.PaddingRight = UDim.new(0,12)
-	pad.PaddingBottom = UDim.new(0,12)
+	pad.PaddingTop = UDim.new(0,10)
+	pad.PaddingLeft = UDim.new(0,10)
+	pad.PaddingRight = UDim.new(0,10)
+	pad.PaddingBottom = UDim.new(0,10)
 
 	local list = Instance.new("UIListLayout", s)
-	list.Padding = UDim.new(0,8)
+	list.Padding = UDim.new(0,7)
 
 	Pages[name] = s
 	return s
@@ -159,14 +156,14 @@ end
 
 local function CreateTab(name)
 	local b = Instance.new("TextButton", sidebar)
-	b.Size = UDim2.new(1,-14,0,32)
+	b.Size = UDim2.new(1,-14,0,30)
 	b.Text = name
 	b.Font = Enum.Font.Gotham
 	b.TextSize = 12
 	b.TextColor3 = Color3.fromRGB(230,230,230)
 	b.BackgroundColor3 = Color3.fromRGB(30,30,30)
 	b.BorderSizePixel = 0
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0,R_BUTTON)
+	Instance.new("UICorner", b).CornerRadius = UDim.new(0,16)
 
 	b.MouseButton1Click:Connect(function()
 		for _,p in pairs(Pages) do p.Visible = false end
@@ -180,7 +177,7 @@ local function CreateTab(name)
 end
 
 ----------------------------------------------------------------
--- REDZ TABS
+-- TABS
 ----------------------------------------------------------------
 local MainPage     = CreatePage("Main")
 local PlayerPage   = CreatePage("Player")
@@ -198,18 +195,18 @@ Pages.Main.Visible = true
 Tabs.Main.BackgroundColor3 = ACCENT_DARK
 
 ----------------------------------------------------------------
--- REDZ-STYLE TOGGLE (FIXED WIDTH)
+-- TOGGLE
 ----------------------------------------------------------------
 local function CreateToggle(parent,text,default,callback)
 	local h = Instance.new("Frame", parent)
-	h.Size = UDim2.new(1,0,0,36)
+	h.Size = UDim2.new(1,0,0,34)
 	h.BackgroundColor3 = Color3.fromRGB(26,26,26)
 	h.BorderSizePixel = 0
-	Instance.new("UICorner", h).CornerRadius = UDim.new(0,R_TOGGLE)
+	Instance.new("UICorner", h).CornerRadius = UDim.new(0,16)
 
 	local l = Instance.new("TextLabel", h)
 	l.Size = UDim2.new(1,-70,1,0)
-	l.Position = UDim2.new(0,12,0,0)
+	l.Position = UDim2.new(0,10,0,0)
 	l.BackgroundTransparency = 1
 	l.Text = text
 	l.Font = Enum.Font.Gotham
@@ -219,17 +216,17 @@ local function CreateToggle(parent,text,default,callback)
 
 	local bg = Instance.new("Frame", h)
 	bg.Size = UDim2.fromOffset(34,16)
-	bg.Position = UDim2.new(1,-46,0.5,-8)
+	bg.Position = UDim2.new(1,-44,0.5,-8)
 	bg.BackgroundColor3 = default and ACCENT or Color3.fromRGB(70,70,70)
 	bg.BorderSizePixel = 0
-	Instance.new("UICorner", bg).CornerRadius = UDim.new(0,R_PILL)
+	Instance.new("UICorner", bg).CornerRadius = UDim.new(1,0)
 
 	local k = Instance.new("Frame", bg)
 	k.Size = UDim2.fromOffset(12,12)
 	k.Position = default and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
 	k.BackgroundColor3 = Color3.new(1,1,1)
 	k.BorderSizePixel = 0
-	Instance.new("UICorner", k).CornerRadius = UDim.new(0,R_PILL)
+	Instance.new("UICorner", k).CornerRadius = UDim.new(1,0)
 
 	local state = default
 	local function Set(v)
@@ -253,12 +250,53 @@ local function CreateToggle(parent,text,default,callback)
 end
 
 ----------------------------------------------------------------
--- PLAYER PAGE (ALL TOGGLES)
+-- PLAYER
 ----------------------------------------------------------------
-CreateToggle(PlayerPage,"Player ESP",false,function(v) State.ESP = v end)
 CreateToggle(PlayerPage,"Fly",false,function(v) State.Fly = v end)
 CreateToggle(PlayerPage,"Noclip",false,function(v) State.Noclip = v end)
 CreateToggle(PlayerPage,"Infinite Jump",false,function(v) State.InfJump = v end)
+
+----------------------------------------------------------------
+-- VISUALS
+----------------------------------------------------------------
+CreateToggle(VisualsPage,"Fullbright",false,function(v)
+	State.Fullbright = v
+	Lighting.Brightness = v and 3 or 1
+	Lighting.ClockTime = v and 14 or 12
+end)
+
+CreateToggle(VisualsPage,"Remove Fog",false,function(v)
+	Lighting.FogEnd = v and 100000 or 1000
+end)
+
+CreateToggle(VisualsPage,"Custom FOV",false,function(v)
+	cam.FieldOfView = v and 90 or 70
+end)
+
+----------------------------------------------------------------
+-- GACHA (WORKING LOOP)
+----------------------------------------------------------------
+local FruitRemote = ReplicatedStorage:FindFirstChild("FruitSpin", true)
+local WinterRemote = ReplicatedStorage:FindFirstChild("WinterSpin", true)
+
+task.spawn(function()
+	while task.wait(State.GachaDelay) do
+		if State.AutoFruit and FruitRemote then
+			pcall(function() FruitRemote:FireServer() end)
+		end
+		if State.AutoWinter and WinterRemote then
+			pcall(function() WinterRemote:FireServer() end)
+		end
+	end
+end)
+
+CreateToggle(GachaPage,"Auto Fruit Spin",false,function(v)
+	State.AutoFruit = v
+end)
+
+CreateToggle(GachaPage,"Auto Winter Spin",false,function(v)
+	State.AutoWinter = v
+end)
 
 ----------------------------------------------------------------
 -- CORE LOOP

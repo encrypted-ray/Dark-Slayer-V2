@@ -1,4 +1,4 @@
--- DARK SLAYER V2 | REDZ HUB STYLE UI
+-- DARK SLAYER V2 | REDZ HUB STYLE UI (FIXED)
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -24,8 +24,6 @@ local State = {
 	Frozen = false,
 	FlySpeed = 120,
 	FrozenCFrame = nil,
-	TimerOn = false,
-	TimeLeft = 0,
 	AutoWinter = false,
 	StopMyth = false,
 	CandyCost = 100
@@ -65,7 +63,7 @@ title.Text = "DARK SLAYER V2"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 title.TextColor3 = Color3.new(1,1,1)
-title.TextXAlignment = Left
+title.TextXAlignment = Enum.TextXAlignment.Left
 
 local close = Instance.new("TextButton", titleBar)
 close.Size = UDim2.fromOffset(35,25)
@@ -75,6 +73,7 @@ close.Font = Enum.Font.GothamBold
 close.TextSize = 16
 close.TextColor3 = Color3.fromRGB(255,90,90)
 close.BackgroundColor3 = Color3.fromRGB(35,35,35)
+close.BorderSizePixel = 0
 Instance.new("UICorner", close)
 
 close.MouseButton1Click:Connect(function()
@@ -84,9 +83,12 @@ end)
 -- SIDEBAR
 local sidebar = Instance.new("Frame", main)
 sidebar.Position = UDim2.new(0,0,0,40)
-sidebar.Size = UDim2.new(0,130,1,-40)
+sidebar.Size = UDim2.new(0,140,1,-40)
 sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 sidebar.BorderSizePixel = 0
+
+local sidePadding = Instance.new("UIPadding", sidebar)
+sidePadding.PaddingTop = UDim.new(0,8)
 
 local sideList = Instance.new("UIListLayout", sidebar)
 sideList.Padding = UDim.new(0,6)
@@ -94,12 +96,12 @@ sideList.HorizontalAlignment = Center
 
 -- PAGES HOLDER
 local pages = Instance.new("Frame", main)
-pages.Position = UDim2.new(0,130,0,40)
-pages.Size = UDim2.new(1,-130,1,-40)
+pages.Position = UDim2.new(0,140,0,40)
+pages.Size = UDim2.new(1,-140,1,-40)
 pages.BackgroundTransparency = 1
 
 -- PAGE SYSTEM
-local PageFolder = {}
+local Pages = {}
 
 local function CreatePage(name)
 	local page = Instance.new("Frame", pages)
@@ -107,16 +109,20 @@ local function CreatePage(name)
 	page.Visible = false
 	page.BackgroundTransparency = 1
 
+	local pad = Instance.new("UIPadding", page)
+	pad.PaddingTop = UDim.new(0,10)
+	pad.PaddingLeft = UDim.new(0,10)
+
 	local list = Instance.new("UIListLayout", page)
 	list.Padding = UDim.new(0,8)
 
-	PageFolder[name] = page
+	Pages[name] = page
 	return page
 end
 
-local function Tab(name)
+local function CreateTab(name)
 	local b = Instance.new("TextButton", sidebar)
-	b.Size = UDim2.new(1,-10,0,36)
+	b.Size = UDim2.new(1,-16,0,36)
 	b.Text = name
 	b.Font = Enum.Font.GothamMedium
 	b.TextSize = 14
@@ -126,8 +132,8 @@ local function Tab(name)
 	Instance.new("UICorner", b)
 
 	b.MouseButton1Click:Connect(function()
-		for _,p in pairs(PageFolder) do p.Visible = false end
-		PageFolder[name].Visible = true
+		for _,p in pairs(Pages) do p.Visible = false end
+		Pages[name].Visible = true
 	end)
 end
 
@@ -145,15 +151,15 @@ local function PageButton(parent, text, color)
 end
 
 -- CREATE PAGES
-local ESPPage     = CreatePage("ESP")
-local MovePage    = CreatePage("Movement")
-local UtilPage    = CreatePage("Utility")
-local GachaPage   = CreatePage("Gacha")
+local ESPPage = CreatePage("ESP")
+local MovePage = CreatePage("Movement")
+local UtilPage = CreatePage("Utility")
+local GachaPage = CreatePage("Gacha")
 
-Tab("ESP")
-Tab("Movement")
-Tab("Utility")
-Tab("Gacha")
+CreateTab("ESP")
+CreateTab("Movement")
+CreateTab("Utility")
+CreateTab("Gacha")
 
 ESPPage.Visible = true
 
@@ -162,9 +168,6 @@ local espBtn = PageButton(ESPPage,"ESP : OFF",Color3.fromRGB(90,30,30))
 espBtn.MouseButton1Click:Connect(function()
 	State.ESP = not State.ESP
 	espBtn.Text = "ESP : "..(State.ESP and "ON" or "OFF")
-	for _,h in pairs(workspace:GetDescendants()) do
-		if h:IsA("Highlight") then h.Enabled = State.ESP end
-	end
 end)
 
 -- MOVEMENT
@@ -252,7 +255,6 @@ RunService.Heartbeat:Connect(function(dt)
 		if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
 		if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
 		if UIS:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
-		hrp.AssemblyLinearVelocity = Vector3.zero
 		hrp.CFrame += dir * State.FlySpeed * dt
 	end
 

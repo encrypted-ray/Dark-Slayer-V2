@@ -1,5 +1,6 @@
---// Winter Gacha Auto Roll Script
--- Stops at Premium Spinner Box, then Ember Dragon
+--// Gacha Auto Roll Script
+-- Regular Gacha: Stops at Mythical Fruit
+-- Winter Gacha: Stops at Premium Spinner Box, then Ember Dragon
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -11,7 +12,8 @@ local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 --// STATE
 local State = {
 	Rolling = false,
-	TargetIndex = 1, -- 1 = Premium Spinner Box, 2 = Ember Dragon
+	GachaType = "Regular", -- "Regular" or "Winter"
+	TargetIndex = 1, -- For Winter: 1 = Premium Spinner Box, 2 = Ember Dragon
 }
 
 --// GUI ROOT
@@ -43,12 +45,50 @@ local Title = Instance.new("TextLabel", TitleBar)
 Title.Size = UDim2.fromScale(0.7, 1)
 Title.Position = UDim2.fromScale(0.03, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Winter Gacha Roller"
+Title.Text = "Gacha Roller"
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.ZIndex = 10
+
+-- Gacha Type Selector
+local GachaTypeLabel = Instance.new("TextLabel", Content)
+GachaTypeLabel.Size = UDim2.fromScale(0.4, 0.25)
+GachaTypeLabel.Position = UDim2.fromScale(0.5, 0.1)
+GachaTypeLabel.BackgroundTransparency = 1
+GachaTypeLabel.Text = "Gacha Type:"
+GachaTypeLabel.Font = Enum.Font.Gotham
+GachaTypeLabel.TextSize = 12
+GachaTypeLabel.TextColor3 = Color3.fromRGB(200,200,200)
+GachaTypeLabel.TextXAlignment = Enum.TextXAlignment.Left
+GachaTypeLabel.ZIndex = 4
+
+local GachaTypeBtn = Instance.new("TextButton", Content)
+GachaTypeBtn.Size = UDim2.fromScale(0.4, 0.25)
+GachaTypeBtn.Position = UDim2.fromScale(0.5, 0.35)
+GachaTypeBtn.Text = "Regular (Mythical)"
+GachaTypeBtn.Font = Enum.Font.Gotham
+GachaTypeBtn.TextSize = 12
+GachaTypeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+GachaTypeBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
+GachaTypeBtn.AutoButtonColor = false
+GachaTypeBtn.ZIndex = 4
+Instance.new("UICorner", GachaTypeBtn).CornerRadius = UDim.new(0,6)
+
+GachaTypeBtn.MouseButton1Click:Connect(function()
+	if State.GachaType == "Regular" then
+		State.GachaType = "Winter"
+		GachaTypeBtn.Text = "Winter (Premium/Ember)"
+		GachaTypeBtn.BackgroundColor3 = Color3.fromRGB(200,100,50)
+		State.TargetIndex = 1
+	else
+		State.GachaType = "Regular"
+		GachaTypeBtn.Text = "Regular (Mythical)"
+		GachaTypeBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
+	end
+	StatusLabel.Text = "Status: Switched to " .. State.GachaType .. " gacha"
+end)
 
 local Close = Instance.new("TextButton", TitleBar)
 Close.Size = UDim2.fromScale(0.15, 0.7)
@@ -141,33 +181,64 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local function FindGacha()
-	-- Look for winter gacha in workspace and other locations
+	-- Look for gacha in workspace and other locations
 	local locations = {Workspace, ReplicatedStorage, game:GetService("StarterGui")}
 	
-	-- Common names for gacha
-	local gachaNames = {
-		"WinterGacha", "Winter Gacha", "WinterGachaModel",
-		"Gacha", "Spinner", "PremiumSpinner", "Premium Spinner",
-		"WinterSpinner", "Winter Spinner"
-	}
+	-- Common names for gacha (both regular and winter)
+	local gachaNames = {}
+	
+	if State.GachaType == "Winter" then
+		gachaNames = {
+			"WinterGacha", "Winter Gacha", "WinterGachaModel",
+			"WinterSpinner", "Winter Spinner", "PremiumSpinner", "Premium Spinner"
+		}
+	else
+		-- Regular gacha names
+		gachaNames = {
+			"Gacha", "Spinner", "FruitGacha", "Fruit Spinner",
+			"RegularGacha", "Regular Gacha", "MainGacha", "Main Gacha"
+		}
+	end
+	
+	-- Also add generic names
+	table.insert(gachaNames, "Gacha")
+	table.insert(gachaNames, "Spinner")
 	
 	for _, location in pairs(locations) do
 		for _, name in pairs(gachaNames) do
 			local gacha = location:FindFirstChild(name, true)
 			if gacha then
-				return gacha
+				-- For winter, make sure it's actually winter
+				if State.GachaType == "Winter" then
+					local gachaName = gacha.Name:lower()
+					if gachaName:find("winter") or gachaName:find("premium") then
+						return gacha
+					end
+				else
+					-- For regular, make sure it's NOT winter
+					local gachaName = gacha.Name:lower()
+					if not gachaName:find("winter") and not gachaName:find("premium") then
+						return gacha
+					end
+				end
 			end
 		end
 	end
 	
-	-- Try to find by looking for spinner/clickdetector with winter/gacha keywords
+	-- Try to find by looking for spinner/clickdetector
 	for _, obj in pairs(Workspace:GetDescendants()) do
 		if obj:IsA("ClickDetector") or obj:IsA("ProximityPrompt") then
 			local parent = obj.Parent
 			if parent then
 				local name = parent.Name:lower()
-				if name:find("gacha") or name:find("spinner") or name:find("winter") then
-					return parent
+				if State.GachaType == "Winter" then
+					if (name:find("gacha") or name:find("spinner")) and (name:find("winter") or name:find("premium")) then
+						return parent
+					end
+				else
+					if (name:find("gacha") or name:find("spinner")) and not name:find("winter") and not name:find("premium") then
+						return parent
+					end
 				end
 			end
 		end
@@ -255,10 +326,19 @@ local function CheckCurrentItem()
 	-- Check PlayerGui for current gacha item display
 	local playerGui = LocalPlayer:WaitForChild("PlayerGui")
 	
-	local targetNames = {
-		[1] = {"premium", "spinner", "box"},
-		[2] = {"ember", "dragon"}
-	}
+	local targetNames = {}
+	
+	if State.GachaType == "Winter" then
+		targetNames = {
+			[1] = {"premium", "spinner", "box"},
+			[2] = {"ember", "dragon"}
+		}
+	else
+		-- Regular gacha - look for mythical fruit
+		targetNames = {
+			[1] = {"mythical", "fruit"}
+		}
+	end
 	
 	local currentTarget = targetNames[State.TargetIndex]
 	if not currentTarget then return false end
@@ -330,15 +410,32 @@ RunService.Heartbeat:Connect(function()
 				end
 				
 				-- Check if we hit the target
-				local targetNames = {
-					[1] = {"premium", "spinner", "box"},
-					[2] = {"ember", "dragon"}
-				}
+				local targetNames = {}
+				local targetDisplayNames = {}
+				
+				if State.GachaType == "Winter" then
+					targetNames = {
+						[1] = {"premium", "spinner", "box"},
+						[2] = {"ember", "dragon"}
+					}
+					targetDisplayNames = {
+						[1] = "Premium Spinner Box",
+						[2] = "Ember Dragon"
+					}
+				else
+					-- Regular gacha
+					targetNames = {
+						[1] = {"mythical", "fruit"}
+					}
+					targetDisplayNames = {
+						[1] = "Mythical Fruit"
+					}
+				end
 				
 				local currentTarget = targetNames[State.TargetIndex]
 				local hitTarget = false
 				
-				if rolledItem then
+				if rolledItem and currentTarget then
 					local itemLower = rolledItem:lower()
 					local allMatch = true
 					for _, targetWord in pairs(currentTarget) do
@@ -359,23 +456,27 @@ RunService.Heartbeat:Connect(function()
 				
 				if hitTarget then
 					-- We hit the target!
-					local targetDisplayNames = {
-						[1] = "Premium Spinner Box",
-						[2] = "Ember Dragon"
-					}
 					StatusLabel.Text = "Status: SUCCESS! Got " .. (targetDisplayNames[State.TargetIndex] or "Target") .. "!"
 					
-					-- Move to next target
-					State.TargetIndex = State.TargetIndex + 1
-					if State.TargetIndex > 2 then
-						State.TargetIndex = 1 -- Loop back
-					end
-					
-					-- Auto continue after 2 seconds
-					wait(2)
-					if State.Rolling then
-						local nextTarget = targetDisplayNames[State.TargetIndex] or "Target"
-						StatusLabel.Text = "Status: Rolling for " .. nextTarget .. "..."
+					-- Move to next target (only for winter gacha)
+					if State.GachaType == "Winter" then
+						State.TargetIndex = State.TargetIndex + 1
+						if State.TargetIndex > 2 then
+							State.TargetIndex = 1 -- Loop back
+						end
+						
+						-- Auto continue after 2 seconds
+						wait(2)
+						if State.Rolling then
+							local nextTarget = targetDisplayNames[State.TargetIndex] or "Target"
+							StatusLabel.Text = "Status: Rolling for " .. nextTarget .. "..."
+						end
+					else
+						-- Regular gacha - stop after getting mythical
+						State.Rolling = false
+						ToggleBtn.Text = "Start Rolling"
+						ToggleBtn.BackgroundColor3 = Color3.fromRGB(50,200,100)
+						StatusLabel.Text = "Status: Got Mythical Fruit! Stopped."
 					end
 				else
 					if rolledItem then

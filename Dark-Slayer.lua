@@ -1,5 +1,5 @@
 -- KRAKEN HUB | SSS-TIER REDZ STYLE UI (FULLY FUNCTIONAL)
--- Fixed with working toggles like Redz-Hub
+-- Fixed with working toggles like Redz-Hub + Enhanced Purple Outline
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -24,6 +24,7 @@ local connections = {}
 ----------------------------------------------------------------
 local ACCENT = Color3.fromRGB(155,89,255)
 local ACCENT_DARK = Color3.fromRGB(90,55,160)
+local ACCENT_GLOW = Color3.fromRGB(200,140,255)
 
 ----------------------------------------------------------------
 -- STATE
@@ -101,9 +102,9 @@ gui.ResetOnSpawn = false
 gui.Parent = CoreGui
 
 ----------------------------------------------------------------
--- MAIN FRAME
+-- MAIN FRAME - 512px WIDTH
 ----------------------------------------------------------------
-local MAIN_W, MAIN_H = 520, 380
+local MAIN_W, MAIN_H = 512, 420
 local TITLE_H, SIDE_W = 42, 130
 
 local main = Instance.new("Frame")
@@ -121,10 +122,23 @@ local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 16)
 mainCorner.Parent = main
 
-local mainStroke = Instance.new("UIStroke")
-mainStroke.Color = ACCENT
-mainStroke.Thickness = 1.5
-mainStroke.Parent = main
+-- FULL PURPLE OUTLINE SYSTEM
+local mainStrokeOuter = Instance.new("UIStroke")
+mainStrokeOuter.Color = ACCENT_GLOW
+mainStrokeOuter.Thickness = 2.5
+mainStrokeOuter.Transparency = 0.3
+mainStrokeOuter.Parent = main
+
+local mainStrokeMain = Instance.new("UIStroke")
+mainStrokeMain.Color = ACCENT
+mainStrokeMain.Thickness = 2
+mainStrokeMain.Parent = main
+
+local mainStrokeInner = Instance.new("UIStroke")
+mainStrokeInner.Color = ACCENT_DARK
+mainStrokeInner.Thickness = 1
+mainStrokeInner.Transparency = 0.7
+mainStrokeInner.Parent = main
 
 ----------------------------------------------------------------
 -- TITLE BAR
@@ -138,6 +152,18 @@ titleBar.Parent = main
 local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0, 16)
 titleCorner.Parent = titleBar
+
+-- Title bar strokes
+local titleStrokeOuter = Instance.new("UIStroke")
+titleStrokeOuter.Color = ACCENT_GLOW
+titleStrokeOuter.Thickness = 1.5
+titleStrokeOuter.Transparency = 0.4
+titleStrokeOuter.Parent = titleBar
+
+local titleStroke = Instance.new("UIStroke")
+titleStroke.Color = ACCENT
+titleStroke.Thickness = 1
+titleStroke.Parent = titleBar
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -90, 1, 0)
@@ -161,9 +187,14 @@ closeBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
 closeBtn.BorderSizePixel = 0
 closeBtn.Parent = titleBar
 
-local closeCorner = Instance.neww("UICorner")
+local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = closeBtn
+
+local closeStroke = Instance.new("UIStroke")
+closeStroke.Color = Color3.fromRGB(120, 60, 60)
+closeStroke.Thickness = 1.5
+closeStroke.Parent = closeBtn
 
 closeBtn.MouseButton1Click:Connect(function()
 	gui:Destroy()
@@ -186,6 +217,18 @@ local sidebarCorner = Instance.new("UICorner")
 sidebarCorner.CornerRadius = UDim.new(0, 16)
 sidebarCorner.Parent = sidebar
 
+-- Sidebar strokes
+local sidebarStrokeOuter = Instance.new("UIStroke")
+sidebarStrokeOuter.Color = ACCENT_GLOW
+sidebarStrokeOuter.Thickness = 1.8
+sidebarStrokeOuter.Transparency = 0.5
+sidebarStrokeOuter.Parent = sidebar
+
+local sidebarStroke = Instance.new("UIStroke")
+sidebarStroke.Color = ACCENT
+sidebarStroke.Thickness = 1.2
+sidebarStroke.Parent = sidebar
+
 local sideList = Instance.new("UIListLayout")
 sideList.Padding = UDim.new(0, 8)
 sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -201,8 +244,8 @@ sidePad.Parent = sidebar
 -- PAGES
 ----------------------------------------------------------------
 local pages = Instance.new("Frame")
-pages.Position = UDim2.new(0, SIDE_W + 5, 0, TITLE_H)
-pages.Size = UDim2.new(1, -SIDE_W - 5, 1, -TITLE_H)
+pages.Position = UDim2.new(0, SIDE_W + 8, 0, TITLE_H)
+pages.Size = UDim2.new(1, -SIDE_W - 8, 1, -TITLE_H)
 pages.BackgroundTransparency = 1
 pages.Parent = main
 
@@ -256,7 +299,7 @@ local function CreateTab(name)
 
 	local btnStroke = Instance.new("UIStroke")
 	btnStroke.Color = Color3.fromRGB(45, 45, 45)
-	btnStroke.Thickness = 1
+	btnStroke.Thickness = 1.2
 	btnStroke.Parent = btn
 
 	btn.MouseButton1Click:Connect(function()
@@ -266,10 +309,12 @@ local function CreateTab(name)
 		for tabName, tab in pairs(Tabs) do
 			tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 			tab.TextColor3 = Color3.fromRGB(200, 200, 200)
+			tab:FindFirstChild("UIStroke").Color = Color3.fromRGB(45, 45, 45)
 		end
 		Pages[name].Visible = true
 		btn.BackgroundColor3 = ACCENT_DARK
 		btn.TextColor3 = Color3.new(1, 1, 1)
+		btn:FindFirstChild("UIStroke").Color = ACCENT
 	end)
 
 	Tabs[name] = btn
@@ -289,6 +334,7 @@ end
 Pages.Main.Visible = true
 Tabs.Main.BackgroundColor3 = ACCENT_DARK
 Tabs.Main.TextColor3 = Color3.new(1, 1, 1)
+Tabs.Main:FindFirstChild("UIStroke").Color = ACCENT
 
 ----------------------------------------------------------------
 -- TOGGLE COMPONENT
@@ -307,7 +353,7 @@ local function CreateToggle(parent, text, default, callback)
 
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = Color3.fromRGB(40, 40, 40)
-	stroke.Thickness = 1
+	stroke.Thickness = 1.2
 	stroke.Parent = frame
 
 	local label = Instance.new("TextLabel")
@@ -554,5 +600,5 @@ task.spawn(function()
 	end
 end)
 
-print("🐙 Kraken Hub Loaded Successfully!")
-print("All toggles are now fully functional like Redz-Hub!")
+print("🐙 Kraken Hub Loaded Successfully! (512px + Full Purple Outline)")
+print("Enhanced UI with triple-layer purple glow effect!")

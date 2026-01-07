@@ -1,329 +1,154 @@
--- KRAKEN HUB | SSS-TIER REDZ STYLE UI (SHORTER + GACHA LOGIC)
+--// Modern Hub Skeleton (Conceptual)
+--// Clean UI, tabs, modular systems
 
-if not game:IsLoaded() then game.Loaded:Wait() end
-
-----------------------------------------------------------------
--- SERVICES
-----------------------------------------------------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UIS = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
-local lp = Players.LocalPlayer
-local cam = workspace.CurrentCamera
-
-----------------------------------------------------------------
--- CONFIG
-----------------------------------------------------------------
-local ACCENT = Color3.fromRGB(155,89,255)
-local ACCENT_DARK = Color3.fromRGB(90,55,160)
-
-----------------------------------------------------------------
--- STATE
-----------------------------------------------------------------
+--// States
 local State = {
-	-- Player
-	ESP = false,
+	AutoFarm = false,
+	Teleport = false,
 	Fly = false,
-	Noclip = false,
-	InfJump = false,
-
-	-- Visuals
-	Fullbright = false,
-	NoFog = false,
-	CustomFOV = false,
-
-	-- Gacha
-	AutoFruit = false,
-	AutoWinter = false,
-	GachaDelay = 2
+	CombatAssist = false,
+	ESP = false
 }
 
-----------------------------------------------------------------
--- CLEANUP
-----------------------------------------------------------------
-if CoreGui:FindFirstChild("KrakenHub") then
-	CoreGui.KrakenHub:Destroy()
-end
+--// GUI Root
+local Gui = Instance.new("ScreenGui", PlayerGui)
+Gui.Name = "ModernHub"
+Gui.ResetOnSpawn = false
 
-----------------------------------------------------------------
--- ROOT GUI
-----------------------------------------------------------------
-local gui = Instance.new("ScreenGui", CoreGui)
-gui.Name = "KrakenHub"
-gui.ResetOnSpawn = false
+--// Main Frame
+local Main = Instance.new("Frame", Gui)
+Main.Size = UDim2.fromScale(0.45, 0.55)
+Main.Position = UDim2.fromScale(0.275, 0.225)
+Main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+Main.ClipsDescendants = true
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0,16)
 
-----------------------------------------------------------------
--- MAIN FRAME (SHORTER HEIGHT)
-----------------------------------------------------------------
-local MAIN_W, MAIN_H = 560, 330
-local TITLE_H, SIDE_W = 36, 120
+--// Sidebar
+local Sidebar = Instance.new("Frame", Main)
+Sidebar.Size = UDim2.fromScale(0.25,1)
+Sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0,16)
 
-local main = Instance.new("Frame", gui)
-main.Size = UDim2.fromOffset(MAIN_W, MAIN_H)
-main.Position = UDim2.fromScale(0.5,0.5)
-main.AnchorPoint = Vector2.new(0.5,0.5)
-main.BackgroundColor3 = Color3.fromRGB(16,16,16)
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-Instance.new("UICorner", main).CornerRadius = UDim.new(0,20)
+--// Content Area
+local Content = Instance.new("Frame", Main)
+Content.Position = UDim2.fromScale(0.25,0)
+Content.Size = UDim2.fromScale(0.75,1)
+Content.BackgroundTransparency = 1
 
-local stroke = Instance.new("UIStroke", main)
-stroke.Color = ACCENT
-stroke.Thickness = 1
-
-----------------------------------------------------------------
--- TITLE BAR
-----------------------------------------------------------------
-local titleBar = Instance.new("Frame", main)
-titleBar.Size = UDim2.new(1,0,0,TITLE_H)
-titleBar.BackgroundColor3 = Color3.fromRGB(22,22,22)
-titleBar.BorderSizePixel = 0
-Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,18)
-
-local title = Instance.new("TextLabel", titleBar)
-title.Size = UDim2.new(1,-80,1,0)
-title.Position = UDim2.new(0,12,0,0)
-title.BackgroundTransparency = 1
-title.Text = "Kraken Hub"
-title.Font = Enum.Font.GothamMedium
-title.TextSize = 13
-title.TextColor3 = ACCENT
-title.TextXAlignment = Enum.TextXAlignment.Left
-
-local close = Instance.new("TextButton", titleBar)
-close.Size = UDim2.fromOffset(24,20)
-close.Position = UDim2.new(1,-30,0.5,-10)
-close.Text = "X"
-close.Font = Enum.Font.GothamBold
-close.TextSize = 14
-close.TextColor3 = Color3.new(1,1,1)
-close.BackgroundColor3 = Color3.fromRGB(90,40,40)
-close.BorderSizePixel = 0
-Instance.new("UICorner", close).CornerRadius = UDim.new(0,14)
-close.MouseButton1Click:Connect(function() gui:Destroy() end)
-
-----------------------------------------------------------------
--- SIDEBAR
-----------------------------------------------------------------
-local sidebar = Instance.new("Frame", main)
-sidebar.Position = UDim2.new(0,0,0,TITLE_H)
-sidebar.Size = UDim2.fromOffset(SIDE_W, MAIN_H - TITLE_H)
-sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
-sidebar.BorderSizePixel = 0
-Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,18)
-
-local sideList = Instance.new("UIListLayout", sidebar)
-sideList.Padding = UDim.new(0,5)
-sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-sideList.VerticalAlignment = Enum.VerticalAlignment.Center
-
-----------------------------------------------------------------
--- PAGES
-----------------------------------------------------------------
-local pages = Instance.new("Frame", main)
-pages.Position = UDim2.new(0,SIDE_W,0,TITLE_H)
-pages.Size = UDim2.new(1,-SIDE_W,1,-TITLE_H)
-pages.BackgroundTransparency = 1
-
-local Pages, Tabs = {}, {}
-
-local function CreatePage(name)
-	local s = Instance.new("ScrollingFrame", pages)
-	s.Size = UDim2.fromScale(1,1)
-	s.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	s.ScrollBarImageTransparency = 0.9
-	s.BackgroundTransparency = 1
-	s.Visible = false
-
-	local pad = Instance.new("UIPadding", s)
-	pad.PaddingTop = UDim.new(0,10)
-	pad.PaddingLeft = UDim.new(0,10)
-	pad.PaddingRight = UDim.new(0,10)
-	pad.PaddingBottom = UDim.new(0,10)
-
-	local list = Instance.new("UIListLayout", s)
-	list.Padding = UDim.new(0,7)
-
-	Pages[name] = s
-	return s
-end
+--// Tabs
+local Tabs = {}
+local CurrentTab
 
 local function CreateTab(name)
-	local b = Instance.new("TextButton", sidebar)
-	b.Size = UDim2.new(1,-14,0,30)
-	b.Text = name
-	b.Font = Enum.Font.Gotham
-	b.TextSize = 12
-	b.TextColor3 = Color3.fromRGB(230,230,230)
-	b.BackgroundColor3 = Color3.fromRGB(30,30,30)
-	b.BorderSizePixel = 0
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0,16)
+	local TabFrame = Instance.new("Frame", Content)
+	TabFrame.Size = UDim2.fromScale(1,1)
+	TabFrame.Visible = false
+	TabFrame.BackgroundTransparency = 1
 
-	b.MouseButton1Click:Connect(function()
-		for _,p in pairs(Pages) do p.Visible = false end
-		for _,t in pairs(Tabs) do t.BackgroundColor3 = Color3.fromRGB(30,30,30) end
-		Pages[name].Visible = true
-		b.BackgroundColor3 = ACCENT_DARK
-	end)
-
-	Tabs[name] = b
-	return b
+	Tabs[name] = TabFrame
+	return TabFrame
 end
 
-----------------------------------------------------------------
--- TABS
-----------------------------------------------------------------
-local MainPage     = CreatePage("Main")
-local PlayerPage   = CreatePage("Player")
-local TeleportPage = CreatePage("Teleport")
-local VisualsPage  = CreatePage("Visuals")
-local GachaPage    = CreatePage("Gacha")
-local MiscPage     = CreatePage("Misc")
-local UIPage       = CreatePage("UI Settings")
-
-for _,n in ipairs({
-	"Main","Player","Teleport","Visuals","Gacha","Misc","UI Settings"
-}) do CreateTab(n) end
-
-Pages.Main.Visible = true
-Tabs.Main.BackgroundColor3 = ACCENT_DARK
-
-----------------------------------------------------------------
--- TOGGLE
-----------------------------------------------------------------
-local function CreateToggle(parent,text,default,callback)
-	local h = Instance.new("Frame", parent)
-	h.Size = UDim2.new(1,0,0,34)
-	h.BackgroundColor3 = Color3.fromRGB(26,26,26)
-	h.BorderSizePixel = 0
-	Instance.new("UICorner", h).CornerRadius = UDim.new(0,16)
-
-	local l = Instance.new("TextLabel", h)
-	l.Size = UDim2.new(1,-70,1,0)
-	l.Position = UDim2.new(0,10,0,0)
-	l.BackgroundTransparency = 1
-	l.Text = text
-	l.Font = Enum.Font.Gotham
-	l.TextSize = 12
-	l.TextColor3 = Color3.fromRGB(230,230,230)
-	l.TextXAlignment = Enum.TextXAlignment.Left
-
-	local bg = Instance.new("Frame", h)
-	bg.Size = UDim2.fromOffset(34,16)
-	bg.Position = UDim2.new(1,-44,0.5,-8)
-	bg.BackgroundColor3 = default and ACCENT or Color3.fromRGB(70,70,70)
-	bg.BorderSizePixel = 0
-	Instance.new("UICorner", bg).CornerRadius = UDim.new(1,0)
-
-	local k = Instance.new("Frame", bg)
-	k.Size = UDim2.fromOffset(12,12)
-	k.Position = default and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
-	k.BackgroundColor3 = Color3.new(1,1,1)
-	k.BorderSizePixel = 0
-	Instance.new("UICorner", k).CornerRadius = UDim.new(1,0)
-
-	local state = default
-	local function Set(v)
-		state = v
-		TweenService:Create(bg,TweenInfo.new(0.15),{
-			BackgroundColor3 = state and ACCENT or Color3.fromRGB(70,70,70)
-		}):Play()
-		TweenService:Create(k,TweenInfo.new(0.15),{
-			Position = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
-		}):Play()
-		if callback then callback(state) end
+local function SwitchTab(name)
+	if CurrentTab then
+		CurrentTab.Visible = false
 	end
-
-	h.InputBegan:Connect(function(i)
-		if i.UserInputType == Enum.UserInputType.MouseButton1 then
-			Set(not state)
-		end
-	end)
-
-	Set(default)
+	CurrentTab = Tabs[name]
+	CurrentTab.Visible = true
 end
 
-----------------------------------------------------------------
--- PLAYER
-----------------------------------------------------------------
-CreateToggle(PlayerPage,"Fly",false,function(v) State.Fly = v end)
-CreateToggle(PlayerPage,"Noclip",false,function(v) State.Noclip = v end)
-CreateToggle(PlayerPage,"Infinite Jump",false,function(v) State.InfJump = v end)
+--// Sidebar Button
+local function CreateTabButton(text, order, tabName)
+	local btn = Instance.new("TextButton", Sidebar)
+	btn.Size = UDim2.fromScale(0.9,0.08)
+	btn.Position = UDim2.fromScale(0.05,0.05 + (order * 0.1))
+	btn.Text = text
+	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	btn.TextColor3 = Color3.fromRGB(220,220,220)
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
 
-----------------------------------------------------------------
--- VISUALS
-----------------------------------------------------------------
-CreateToggle(VisualsPage,"Fullbright",false,function(v)
-	State.Fullbright = v
-	Lighting.Brightness = v and 3 or 1
-	Lighting.ClockTime = v and 14 or 12
+	btn.MouseButton1Click:Connect(function()
+		SwitchTab(tabName)
+	end)
+end
+
+--// Toggle Component
+local function CreateToggle(parent, text, posY, callback)
+	local holder = Instance.new("Frame", parent)
+	holder.Size = UDim2.fromScale(0.85,0.1)
+	holder.Position = UDim2.fromScale(0.075,posY)
+	holder.BackgroundColor3 = Color3.fromRGB(28,28,28)
+	Instance.new("UICorner", holder).CornerRadius = UDim.new(0,10)
+
+	local label = Instance.new("TextLabel", holder)
+	label.Text = text
+	label.Size = UDim2.fromScale(0.7,1)
+	label.BackgroundTransparency = 1
+	label.TextColor3 = Color3.fromRGB(230,230,230)
+
+	local toggle = Instance.new("TextButton", holder)
+	toggle.Size = UDim2.fromScale(0.2,0.6)
+	toggle.Position = UDim2.fromScale(0.75,0.2)
+	toggle.Text = "OFF"
+	toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
+
+	toggle.MouseButton1Click:Connect(function()
+		local state = callback()
+		toggle.Text = state and "ON" or "OFF"
+		toggle.BackgroundColor3 = state and Color3.fromRGB(90,180,90) or Color3.fromRGB(50,50,50)
+	end)
+end
+
+--// Tabs Setup
+local FarmTab = CreateTab("Farm")
+local TravelTab = CreateTab("Travel")
+local CombatTab = CreateTab("Combat")
+local VisualTab = CreateTab("Visual")
+
+CreateTabButton("Farming", 0, "Farm")
+CreateTabButton("Teleport", 1, "Travel")
+CreateTabButton("Combat", 2, "Combat")
+CreateTabButton("ESP", 3, "Visual")
+
+--// Toggles
+CreateToggle(FarmTab, "Auto Farm Enemies", 0.1, function()
+	State.AutoFarm = not State.AutoFarm
+	return State.AutoFarm
 end)
 
-CreateToggle(VisualsPage,"Remove Fog",false,function(v)
-	Lighting.FogEnd = v and 100000 or 1000
+CreateToggle(TravelTab, "Island Teleport", 0.1, function()
+	State.Teleport = not State.Teleport
+	return State.Teleport
 end)
 
-CreateToggle(VisualsPage,"Custom FOV",false,function(v)
-	cam.FieldOfView = v and 90 or 70
+CreateToggle(CombatTab, "Aim Assist", 0.1, function()
+	State.CombatAssist = not State.CombatAssist
+	return State.CombatAssist
 end)
 
-----------------------------------------------------------------
--- GACHA (WORKING LOOP)
-----------------------------------------------------------------
-local FruitRemote = ReplicatedStorage:FindFirstChild("FruitSpin", true)
-local WinterRemote = ReplicatedStorage:FindFirstChild("WinterSpin", true)
+CreateToggle(VisualTab, "ESP Overlay", 0.1, function()
+	State.ESP = not State.ESP
+	return State.ESP
+end)
 
-task.spawn(function()
-	while task.wait(State.GachaDelay) do
-		if State.AutoFruit and FruitRemote then
-			pcall(function() FruitRemote:FireServer() end)
-		end
-		if State.AutoWinter and WinterRemote then
-			pcall(function() WinterRemote:FireServer() end)
-		end
+SwitchTab("Farm")
+
+--// Logic Loop (Conceptual)
+RunService.Heartbeat:Connect(function()
+	if State.AutoFarm then
+		-- enemy scan + tween
 	end
-end)
-
-CreateToggle(GachaPage,"Auto Fruit Spin",false,function(v)
-	State.AutoFruit = v
-end)
-
-CreateToggle(GachaPage,"Auto Winter Spin",false,function(v)
-	State.AutoWinter = v
-end)
-
-----------------------------------------------------------------
--- CORE LOOP
-----------------------------------------------------------------
-UIS.JumpRequest:Connect(function()
-	if State.InfJump then
-		lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+	if State.CombatAssist then
+		-- nearest target bias
 	end
-end)
-
-RunService.Heartbeat:Connect(function(dt)
-	local char = lp.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	if State.Fly then
-		local d = Vector3.zero
-		if UIS:IsKeyDown(Enum.KeyCode.W) then d += cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.S) then d -= cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.A) then d -= cam.CFrame.RightVector end
-		if UIS:IsKeyDown(Enum.KeyCode.D) then d += cam.CFrame.RightVector end
-		hrp.CFrame += d * 110 * dt
-	end
-
-	if State.Noclip then
-		for _,v in ipairs(char:GetDescendants()) do
-			if v:IsA("BasePart") then v.CanCollide = false end
-		end
+	if State.ESP then
+		-- highlights / billboards
 	end
 end)

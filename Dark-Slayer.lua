@@ -35,33 +35,33 @@ Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.IgnoreGuiInset = true
 Gui.Parent = PlayerGui
 
---// MAIN FRAME (Material Design)
+--// MAIN FRAME (redz Hub Style)
 local Main = Instance.new("Frame", Gui)
-Main.Size = UDim2.fromScale(0.45, 0.55)
-Main.Position = UDim2.fromScale(0.275, 0.225)
-Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Main.Size = UDim2.fromScale(0.5, 0.65)
+Main.Position = UDim2.fromScale(0.25, 0.175)
+Main.BackgroundColor3 = Color3.fromRGB(35,35,35)
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
 local MainCorner = Instance.new("UICorner", Main)
-MainCorner.CornerRadius = UDim.new(0,12)
+MainCorner.CornerRadius = UDim.new(0,8)
 Main.ZIndex = 1
 
---// TITLE BAR (Material Design)
+--// TITLE BAR (redz Hub Style)
 local TitleBar = Instance.new("Frame", Main)
-TitleBar.Size = UDim2.fromScale(1, 0.08)
-TitleBar.BackgroundColor3 = Color3.fromRGB(38,38,38)
+TitleBar.Size = UDim2.fromScale(1, 0.06)
+TitleBar.BackgroundColor3 = Color3.fromRGB(40,40,40)
 TitleBar.BorderSizePixel = 0
 local TitleBarCorner = Instance.new("UICorner", TitleBar)
-TitleBarCorner.CornerRadius = UDim.new(0,12)
+TitleBarCorner.CornerRadius = UDim.new(0,8)
 TitleBar.ZIndex = 5
 
 local Title = Instance.new("TextLabel", TitleBar)
-Title.Size = UDim2.fromScale(0.7, 1)
-Title.Position = UDim2.fromScale(0.03, 0)
+Title.Size = UDim2.fromScale(0.6, 1)
+Title.Position = UDim2.fromScale(0.02, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "Kraken-Hub"
 Title.Font = Enum.Font.Gotham
-Title.TextSize = 18
+Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.ZIndex = 10

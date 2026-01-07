@@ -3,9 +3,16 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Camera = Workspace.CurrentCamera
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local Humanoid = Character:WaitForChild("Humanoid")
 
 --// STATE
 local State = {
@@ -14,6 +21,10 @@ local State = {
 	CombatAssist = false,
 	ESP = false
 }
+
+--// ESP STORAGE
+local ESPObjects = {}
+local ESPConnections = {}
 
 --// GUI ROOT
 local Gui = Instance.new("ScreenGui")
@@ -34,7 +45,8 @@ Main.ZIndex = 1
 local TitleBar = Instance.new("Frame", Main)
 TitleBar.Size = UDim2.fromScale(1, 0.08)
 TitleBar.BackgroundColor3 = Color3.fromRGB(24,24,24)
-Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0,16)
+local TitleBarCorner = Instance.new("UICorner", TitleBar)
+TitleBarCorner.CornerRadius = UDim.new(0,16)
 TitleBar.ZIndex = 5
 
 local Title = Instance.new("TextLabel", TitleBar)
@@ -44,7 +56,7 @@ Title.BackgroundTransparency = 1
 Title.Text = "Modern Hub"
 Title.Font = Enum.Font.GothamSemibold
 Title.TextSize = 16
-Title.TextXAlignment = Left
+Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(235,235,235)
 
 --// CLOSE BUTTON
@@ -133,14 +145,14 @@ Sidebar.Position = UDim2.fromScale(0, 0.08)
 Sidebar.Size = UDim2.fromScale(0.25, 0.92)
 Sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0,16)
-Sidebar.ZIndex = 2
+Sidebar.ZIndex = 3
 
 --// CONTENT
 local Content = Instance.new("Frame", Main)
 Content.Position = UDim2.fromScale(0.25, 0.08)
 Content.Size = UDim2.fromScale(0.75, 0.92)
 Content.BackgroundTransparency = 1
-Content.ZIndex = 2
+Content.ZIndex = 3
 
 --// TABS
 local Tabs = {}
@@ -169,6 +181,7 @@ local function CreateTabButton(text, order, tabName)
 	btn.TextSize = 14
 	btn.TextColor3 = Color3.fromRGB(230,230,230)
 	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	btn.AutoButtonColor = false
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
 	btn.MouseButton1Click:Connect(function()
 		SwitchTab(tabName)
@@ -181,15 +194,19 @@ local function CreateToggle(parent, text, posY, callback)
 	holder.Size = UDim2.fromScale(0.85,0.12)
 	holder.Position = UDim2.fromScale(0.075, posY)
 	holder.BackgroundColor3 = Color3.fromRGB(28,28,28)
+	holder.ZIndex = 4
 	Instance.new("UICorner", holder).CornerRadius = UDim.new(0,10)
 
 	local label = Instance.new("TextLabel", holder)
 	label.Size = UDim2.fromScale(0.7,1)
+	label.Position = UDim2.fromScale(0.05, 0)
 	label.BackgroundTransparency = 1
 	label.Text = text
 	label.Font = Enum.Font.Gotham
 	label.TextSize = 14
 	label.TextColor3 = Color3.fromRGB(235,235,235)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.ZIndex = 5
 
 	local toggle = Instance.new("TextButton", holder)
 	toggle.Size = UDim2.fromScale(0.2,0.6)
@@ -197,7 +214,10 @@ local function CreateToggle(parent, text, posY, callback)
 	toggle.Text = "OFF"
 	toggle.Font = Enum.Font.GothamBold
 	toggle.TextSize = 12
+	toggle.TextColor3 = Color3.fromRGB(255,255,255)
 	toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	toggle.AutoButtonColor = false
+	toggle.ZIndex = 5
 	Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
 
 	toggle.MouseButton1Click:Connect(function()
@@ -241,15 +261,251 @@ end)
 
 SwitchTab("Farm")
 
---// MAIN LOOP (CONCEPTUAL PLACEHOLDER)
+--// UTILITY FUNCTIONS
+local function GetClosestEnemy()
+	local closest = nil
+	local closestDistance = math.huge
+	local playerPos = HumanoidRootPart.Position
+	
+	-- Check all characters/models in workspace
+	for _, v in pairs(Workspace:GetDescendants()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+			local humanoid = v.Humanoid
+			local rootPart = v.HumanoidRootPart
+			
+			-- Exclude player's character and dead enemies
+			if v ~= Character and humanoid.Health > 0 then
+				-- Check if it's a player or NPC
+				local isPlayer = Players:GetPlayerFromCharacter(v)
+				if not isPlayer or isPlayer ~= LocalPlayer then
+					local distance = (rootPart.Position - playerPos).Magnitude
+					if distance < closestDistance and distance < 200 then
+						closestDistance = distance
+						closest = v
+					end
+				end
+			end
+		end
+	end
+	
+	return closest
+end
+
+local function TeleportToPosition(position)
+	if HumanoidRootPart then
+		HumanoidRootPart.CFrame = CFrame.new(position)
+	end
+end
+
+local function GetIslands()
+	local islands = {}
+	-- Search for islands in various common locations
+	for _, v in pairs(Workspace:GetChildren()) do
+		if v:IsA("BasePart") and (v.Name:find("Island") or v.Name:find("Spawn") or v.Name:find("Location") or v.Name:find("Teleport")) then
+			table.insert(islands, v)
+		elseif v:IsA("Model") then
+			-- Check model names
+			if v.Name:find("Island") or v.Name:find("Spawn") or v.Name:find("Location") then
+				local rootPart = v:FindFirstChild("HumanoidRootPart") or v:FindFirstChild("PrimaryPart") or v:FindFirstChildOfClass("BasePart")
+				if rootPart then
+					table.insert(islands, rootPart)
+				end
+			end
+		end
+	end
+	return islands
+end
+
+--// ESP FUNCTIONS
+local function CreateESP(target)
+	if ESPObjects[target] then return end
+	
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "ESP"
+	billboard.Size = UDim2.new(0, 100, 0, 50)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Adornee = target:FindFirstChild("HumanoidRootPart") or target
+	billboard.Parent = target:FindFirstChild("HumanoidRootPart") or target
+	
+	local nameLabel = Instance.new("TextLabel", billboard)
+	nameLabel.Size = UDim2.new(1, 0, 0.5, 0)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Text = target.Name
+	nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+	nameLabel.TextSize = 14
+	nameLabel.Font = Enum.Font.GothamBold
+	
+	local healthLabel = Instance.new("TextLabel", billboard)
+	healthLabel.Size = UDim2.new(1, 0, 0.5, 0)
+	healthLabel.Position = UDim2.new(0, 0, 0.5, 0)
+	healthLabel.BackgroundTransparency = 1
+	healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+	healthLabel.TextSize = 12
+	healthLabel.Font = Enum.Font.Gotham
+	
+	if target:FindFirstChild("Humanoid") then
+		local humanoid = target.Humanoid
+		healthLabel.Text = "HP: " .. math.floor(humanoid.Health) .. "/" .. math.floor(humanoid.MaxHealth)
+		
+		local healthConnection = humanoid.HealthChanged:Connect(function(health)
+			healthLabel.Text = "HP: " .. math.floor(health) .. "/" .. math.floor(humanoid.MaxHealth)
+		end)
+		table.insert(ESPConnections, healthConnection)
+	end
+	
+	ESPObjects[target] = billboard
+end
+
+local function RemoveESP(target)
+	if ESPObjects[target] then
+		ESPObjects[target]:Destroy()
+		ESPObjects[target] = nil
+	end
+end
+
+local function UpdateESP()
+	if not State.ESP then return end
+	
+	-- Check all models in workspace
+	for _, v in pairs(Workspace:GetChildren()) do
+		if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
+			if v ~= Character and v.Humanoid.Health > 0 then
+				CreateESP(v)
+			end
+		end
+	end
+	
+	-- Clean up ESP for removed or dead targets
+	for target, _ in pairs(ESPObjects) do
+		if not target.Parent or not target:FindFirstChild("HumanoidRootPart") or (target:FindFirstChild("Humanoid") and target.Humanoid.Health <= 0) then
+			RemoveESP(target)
+		end
+	end
+end
+
+--// AIM ASSIST FUNCTION
+local function AimAssist()
+	if not State.CombatAssist or not Camera then return end
+	
+	local target = GetClosestEnemy()
+	if target and target:FindFirstChild("HumanoidRootPart") then
+		local targetPosition = target.HumanoidRootPart.Position
+		local cameraPosition = Camera.CFrame.Position
+		
+		-- Smooth aim assist (not instant lock)
+		local currentCFrame = Camera.CFrame
+		local targetCFrame = CFrame.lookAt(cameraPosition, targetPosition)
+		local newCFrame = currentCFrame:Lerp(targetCFrame, 0.3)
+		
+		Camera.CFrame = newCFrame
+	end
+end
+
+--// AUTO FARM FUNCTION
+local function AutoFarm()
+	if not State.AutoFarm or not Character or not HumanoidRootPart or not Humanoid then return end
+	
+	local target = GetClosestEnemy()
+	if target and target:FindFirstChild("HumanoidRootPart") then
+		local targetPosition = target.HumanoidRootPart.Position
+		local playerPosition = HumanoidRootPart.Position
+		local distance = (targetPosition - playerPosition).Magnitude
+		
+		if distance > 5 then
+			Humanoid:MoveTo(targetPosition)
+		else
+			-- Attack logic - try to find and use weapon/attack
+			if Character:FindFirstChildOfClass("Tool") then
+				local tool = Character:FindFirstChildOfClass("Tool")
+				-- Try different attack methods
+				if tool:FindFirstChild("Activate") then
+					tool.Activate:Fire()
+				elseif tool:FindFirstChild("RemoteEvent") then
+					tool.RemoteEvent:FireServer("Attack")
+				elseif tool:FindFirstChild("Click") then
+					tool.Click:Fire()
+				end
+			end
+			
+			-- Face the target
+			HumanoidRootPart.CFrame = CFrame.lookAt(playerPosition, targetPosition)
+		end
+	end
+end
+
+--// TELEPORT FUNCTION
+local lastTeleportState = false
+local function TeleportToIsland()
+	if not State.Teleport or not HumanoidRootPart then 
+		lastTeleportState = false
+		return 
+	end
+	
+	-- Only teleport once when toggled on
+	if lastTeleportState == State.Teleport then return end
+	lastTeleportState = true
+	
+	local islands = GetIslands()
+	if #islands > 0 then
+		local closestIsland = nil
+		local closestDistance = math.huge
+		local playerPos = HumanoidRootPart.Position
+		
+		for _, island in pairs(islands) do
+			if island and island.Parent then
+				local distance = (island.Position - playerPos).Magnitude
+				if distance < closestDistance then
+					closestDistance = distance
+					closestIsland = island
+				end
+			end
+		end
+		
+		if closestIsland then
+			TeleportToPosition(closestIsland.Position + Vector3.new(0, 5, 0))
+		end
+	end
+end
+
+--// CHARACTER RESPAWN HANDLER
+LocalPlayer.CharacterAdded:Connect(function(newCharacter)
+	Character = newCharacter
+	HumanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+	Humanoid = newCharacter:WaitForChild("Humanoid")
+end)
+
+--// MAIN LOOP
 RunService.Heartbeat:Connect(function()
 	if State.AutoFarm then
-		-- autofarm logic
+		AutoFarm()
 	end
+	
 	if State.CombatAssist then
-		-- aim assist logic
+		AimAssist()
 	end
+	
 	if State.ESP then
-		-- esp logic
+		UpdateESP()
+	else
+		-- Clean up ESP when disabled
+		for target, _ in pairs(ESPObjects) do
+			RemoveESP(target)
+		end
+	end
+	
+	-- Teleport when enabled
+	TeleportToIsland()
+end)
+
+--// CLEANUP ON SCRIPT REMOVAL
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+	if player == LocalPlayer then
+		for target, _ in pairs(ESPObjects) do
+			RemoveESP(target)
+		end
+		for _, conn in pairs(ESPConnections) do
+			conn:Disconnect()
+		end
 	end
 end)

@@ -306,28 +306,64 @@ end
 --// MAIN LOOP
 local lastRollTime = 0
 local checkingTarget = false
+local lastRolledItem = ""
 
 RunService.Heartbeat:Connect(function()
 	if State.Rolling and not checkingTarget then
 		local currentTime = tick()
 		
-		-- Roll every 3 seconds (give time for spinner to stop)
-		if currentTime - lastRollTime > 3 then
+		-- Roll every 4 seconds (give time for spinner to stop and result to show)
+		if currentTime - lastRollTime > 4 then
 			RollGacha()
 			lastRollTime = currentTime
 			
-			-- Wait a bit then check if we're at target
+			-- Wait a bit then check what was rolled
 			checkingTarget = true
 			spawn(function()
-				wait(2) -- Wait for spinner to potentially stop
+				wait(2.5) -- Wait for spinner to stop and result to appear
 				
-				if CheckCurrentItem() then
+				-- Get what was actually rolled
+				local rolledItem = GetRolledItem()
+				if rolledItem then
+					lastRolledItem = rolledItem
+					StatusLabel.Text = "Status: Rolled - " .. rolledItem
+				end
+				
+				-- Check if we hit the target
+				local targetNames = {
+					[1] = {"premium", "spinner", "box"},
+					[2] = {"ember", "dragon"}
+				}
+				
+				local currentTarget = targetNames[State.TargetIndex]
+				local hitTarget = false
+				
+				if rolledItem then
+					local itemLower = rolledItem:lower()
+					local allMatch = true
+					for _, targetWord in pairs(currentTarget) do
+						if not itemLower:find(targetWord:lower()) then
+							allMatch = false
+							break
+						end
+					end
+					if allMatch then
+						hitTarget = true
+					end
+				end
+				
+				-- Also check GUI/workspace
+				if not hitTarget then
+					hitTarget = CheckCurrentItem()
+				end
+				
+				if hitTarget then
 					-- We hit the target!
-					local targetNames = {
+					local targetDisplayNames = {
 						[1] = "Premium Spinner Box",
 						[2] = "Ember Dragon"
 					}
-					StatusLabel.Text = "Status: Got " .. (targetNames[State.TargetIndex] or "Target") .. "!"
+					StatusLabel.Text = "Status: SUCCESS! Got " .. (targetDisplayNames[State.TargetIndex] or "Target") .. "!"
 					
 					-- Move to next target
 					State.TargetIndex = State.TargetIndex + 1
@@ -335,17 +371,43 @@ RunService.Heartbeat:Connect(function()
 						State.TargetIndex = 1 -- Loop back
 					end
 					
-					-- Auto continue after 1 second
-					wait(1)
+					-- Auto continue after 2 seconds
+					wait(2)
 					if State.Rolling then
-						StatusLabel.Text = "Status: Rolling for next target..."
+						local nextTarget = targetDisplayNames[State.TargetIndex] or "Target"
+						StatusLabel.Text = "Status: Rolling for " .. nextTarget .. "..."
 					end
 				else
-					StatusLabel.Text = "Status: Rolling... (not at target yet)"
+					if rolledItem then
+						StatusLabel.Text = "Status: Got " .. rolledItem .. " (not target, rolling again...)"
+					else
+						StatusLabel.Text = "Status: Rolling... (checking result)"
+					end
 				end
 				
 				checkingTarget = false
 			end)
+		end
+	end
+end)
+
+-- Debug: Print all GUI text when rolling
+spawn(function()
+	while true do
+		if State.Rolling then
+			wait(1)
+			local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+			print("=== Checking GUI for results ===")
+			for _, gui in pairs(playerGui:GetDescendants()) do
+				if gui:IsA("TextLabel") or gui:IsA("TextButton") then
+					local text = tostring(gui.Text)
+					if text and text ~= "" and text:len() > 3 then
+						print("Found text:", text, "| Parent:", gui.Parent.Name, "| FullPath:", gui:GetFullName())
+					end
+				end
+			end
+		else
+			wait(5)
 		end
 	end
 end)

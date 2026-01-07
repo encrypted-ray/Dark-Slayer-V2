@@ -60,7 +60,7 @@ gui.ResetOnSpawn = false
 ----------------------------------------------------------------
 -- MAIN FRAME (SHORTER HEIGHT)
 ----------------------------------------------------------------
-local MAIN_W, MAIN_H = 560, 330
+local MAIN_W, MAIN_H = 560, 300  -- shrunk by one sidebar button height
 local TITLE_H, SIDE_W = 36, 120
 
 local main = Instance.new("Frame", gui)

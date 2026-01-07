@@ -1,4 +1,5 @@
--- DARK SLAYER V2 (MODERN UI + WINTER GACHA)
+-- DARK SLAYER V2 | REDZ HUB STYLE UI
+
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 -- SERVICES
@@ -25,138 +26,219 @@ local State = {
 	FrozenCFrame = nil,
 	TimerOn = false,
 	TimeLeft = 0,
-	-- Winter Gacha
 	AutoWinter = false,
 	StopMyth = false,
 	CandyCost = 100
 }
 
 -- CLEANUP
-if CoreGui:FindFirstChild("DarkSlayerModern") then
-	CoreGui.DarkSlayerModern:Destroy()
+if CoreGui:FindFirstChild("DarkSlayerRedz") then
+	CoreGui.DarkSlayerRedz:Destroy()
 end
 
 -- GUI ROOT
 local gui = Instance.new("ScreenGui", CoreGui)
-gui.Name = "DarkSlayerModern"
+gui.Name = "DarkSlayerRedz"
 gui.ResetOnSpawn = false
 
 -- MAIN FRAME
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.fromScale(0.28, 0.52)
-main.Position = UDim2.fromScale(0.36, 0.24)
-main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+main.Size = UDim2.fromScale(0.45, 0.55)
+main.Position = UDim2.fromScale(0.275, 0.22)
+main.BackgroundColor3 = Color3.fromRGB(16,16,16)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
-Instance.new("UICorner", main).CornerRadius = UDim.new(0,16)
-local stroke = Instance.new("UIStroke", main)
-stroke.Color = Color3.fromRGB(70,70,70)
-stroke.Thickness = 1.5
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,14)
 
--- TITLE
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1,0,0,45)
+-- TITLE BAR
+local titleBar = Instance.new("Frame", main)
+titleBar.Size = UDim2.new(1,0,0,40)
+titleBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+titleBar.BorderSizePixel = 0
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(1,-50,1,0)
+title.Position = UDim2.new(0,10,0,0)
 title.BackgroundTransparency = 1
 title.Text = "DARK SLAYER V2"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+title.TextSize = 16
 title.TextColor3 = Color3.new(1,1,1)
+title.TextXAlignment = Left
 
--- CONTAINER
-local container = Instance.new("Frame", main)
-container.Position = UDim2.fromOffset(10,50)
-container.Size = UDim2.new(1,-20,1,-60)
-container.BackgroundTransparency = 1
-local list = Instance.new("UIListLayout", container)
-list.Padding = UDim.new(0,8)
+local close = Instance.new("TextButton", titleBar)
+close.Size = UDim2.fromOffset(35,25)
+close.Position = UDim2.new(1,-40,0.5,-12)
+close.Text = "✕"
+close.Font = Enum.Font.GothamBold
+close.TextSize = 16
+close.TextColor3 = Color3.fromRGB(255,90,90)
+close.BackgroundColor3 = Color3.fromRGB(35,35,35)
+Instance.new("UICorner", close)
 
--- BUTTON CREATOR
-local function Button(text, color)
-	local b = Instance.new("TextButton")
-	b.Size = UDim2.new(1,0,0,38)
-	b.BackgroundColor3 = color or Color3.fromRGB(30,30,30)
+close.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+-- SIDEBAR
+local sidebar = Instance.new("Frame", main)
+sidebar.Position = UDim2.new(0,0,0,40)
+sidebar.Size = UDim2.new(0,130,1,-40)
+sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
+sidebar.BorderSizePixel = 0
+
+local sideList = Instance.new("UIListLayout", sidebar)
+sideList.Padding = UDim.new(0,6)
+sideList.HorizontalAlignment = Center
+
+-- PAGES HOLDER
+local pages = Instance.new("Frame", main)
+pages.Position = UDim2.new(0,130,0,40)
+pages.Size = UDim2.new(1,-130,1,-40)
+pages.BackgroundTransparency = 1
+
+-- PAGE SYSTEM
+local PageFolder = {}
+
+local function CreatePage(name)
+	local page = Instance.new("Frame", pages)
+	page.Size = UDim2.fromScale(1,1)
+	page.Visible = false
+	page.BackgroundTransparency = 1
+
+	local list = Instance.new("UIListLayout", page)
+	list.Padding = UDim.new(0,8)
+
+	PageFolder[name] = page
+	return page
+end
+
+local function Tab(name)
+	local b = Instance.new("TextButton", sidebar)
+	b.Size = UDim2.new(1,-10,0,36)
+	b.Text = name
+	b.Font = Enum.Font.GothamMedium
+	b.TextSize = 14
+	b.TextColor3 = Color3.new(1,1,1)
+	b.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	b.BorderSizePixel = 0
+	Instance.new("UICorner", b)
+
+	b.MouseButton1Click:Connect(function()
+		for _,p in pairs(PageFolder) do p.Visible = false end
+		PageFolder[name].Visible = true
+	end)
+end
+
+local function PageButton(parent, text, color)
+	local b = Instance.new("TextButton", parent)
+	b.Size = UDim2.new(1,-20,0,36)
 	b.Text = text
 	b.Font = Enum.Font.GothamMedium
 	b.TextSize = 14
 	b.TextColor3 = Color3.new(1,1,1)
-	b.AutoButtonColor = false
+	b.BackgroundColor3 = color or Color3.fromRGB(32,32,32)
 	b.BorderSizePixel = 0
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0,10)
-	b.Parent = container
+	Instance.new("UICorner", b)
 	return b
 end
 
--- MAIN BUTTONS
-local espBtn     = Button("ESP : OFF", Color3.fromRGB(90,30,30))
-local flyBtn     = Button("FLY : OFF")
-local noclipBtn  = Button("NOCLIP : OFF")
-local speedBtn   = Button("SPEED : OFF")
-local jumpBtn    = Button("INF JUMP : OFF")
-local freezeBtn  = Button("FREEZE : OFF", Color3.fromRGB(30,60,120))
-local hopBtn     = Button("SERVER HOP", Color3.fromRGB(120,40,40))
-local shutdown   = Button("SHUTDOWN", Color3.fromRGB(40,40,40))
+-- CREATE PAGES
+local ESPPage     = CreatePage("ESP")
+local MovePage    = CreatePage("Movement")
+local UtilPage    = CreatePage("Utility")
+local GachaPage   = CreatePage("Gacha")
 
--- TIMER
-local timerLabel = Instance.new("TextLabel", container)
-timerLabel.Size = UDim2.new(1,0,0,30)
-timerLabel.BackgroundTransparency = 1
-timerLabel.Text = "00:00"
-timerLabel.Font = Enum.Font.GothamBold
-timerLabel.TextSize = 16
-timerLabel.TextColor3 = Color3.new(1,1,1)
+Tab("ESP")
+Tab("Movement")
+Tab("Utility")
+Tab("Gacha")
 
-local timeBox = Instance.new("TextBox", container)
-timeBox.Size = UDim2.new(1,0,0,30)
-timeBox.Text = "60"
-timeBox.Font = Enum.Font.Gotham
-timeBox.TextSize = 14
-timeBox.BackgroundColor3 = Color3.fromRGB(25,25,25)
-timeBox.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", timeBox)
+ESPPage.Visible = true
 
-local startBtn = Button("START TIMER", Color3.fromRGB(30,90,30))
-
--- BASES TELEPORT
-local bases = {
-	Vector3.new(-210,-11,-201), Vector3.new(-209,-11,-58), 
-	Vector3.new(-209,-11,84), Vector3.new(179,-11,85), 
-	Vector3.new(179,-11,-58), Vector3.new(180,-11,-201)
-}
-for i, pos in pairs(bases) do
-	local b = Button("B"..i)
-	b.MouseButton1Click:Connect(function() 
-		if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-			lp.Character.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0,5,0)) 
-		end
-	end)
-end
-
--- ESP LOGIC
-local Highlights = {}
-local function ApplyESP(p)
-	if p == lp then return end
-	local function setup(char)
-		if Highlights[p] then Highlights[p]:Destroy() end
-		local h = Instance.new("Highlight")
-		h.FillColor = Color3.fromRGB(255,70,70)
-		h.OutlineColor = Color3.new(1,1,1)
-		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-		h.Adornee = char
-		h.Enabled = State.ESP
-		h.Parent = char
-		Highlights[p] = h
+-- ESP
+local espBtn = PageButton(ESPPage,"ESP : OFF",Color3.fromRGB(90,30,30))
+espBtn.MouseButton1Click:Connect(function()
+	State.ESP = not State.ESP
+	espBtn.Text = "ESP : "..(State.ESP and "ON" or "OFF")
+	for _,h in pairs(workspace:GetDescendants()) do
+		if h:IsA("Highlight") then h.Enabled = State.ESP end
 	end
-	p.CharacterAdded:Connect(setup)
-	if p.Character then setup(p.Character) end
-end
-for _,p in ipairs(Players:GetPlayers()) do ApplyESP(p) end
-Players.PlayerAdded:Connect(ApplyESP)
+end)
+
+-- MOVEMENT
+local flyBtn = PageButton(MovePage,"FLY : OFF")
+local noclipBtn = PageButton(MovePage,"NOCLIP : OFF")
+local jumpBtn = PageButton(MovePage,"INF JUMP : OFF")
+local speedBtn = PageButton(MovePage,"SPEED : OFF")
+
+flyBtn.MouseButton1Click:Connect(function()
+	State.Fly = not State.Fly
+	flyBtn.Text = "FLY : "..(State.Fly and "ON" or "OFF")
+	lp.Character.Humanoid.PlatformStand = State.Fly
+end)
+
+noclipBtn.MouseButton1Click:Connect(function()
+	State.Noclip = not State.Noclip
+	noclipBtn.Text = "NOCLIP : "..(State.Noclip and "ON" or "OFF")
+end)
+
+jumpBtn.MouseButton1Click:Connect(function()
+	State.InfJump = not State.InfJump
+	jumpBtn.Text = "INF JUMP : "..(State.InfJump and "ON" or "OFF")
+end)
+
+speedBtn.MouseButton1Click:Connect(function()
+	local hum = lp.Character.Humanoid
+	hum.WalkSpeed = hum.WalkSpeed == 16 and 100 or 16
+	speedBtn.Text = "SPEED : "..(hum.WalkSpeed > 16 and "ON" or "OFF")
+end)
+
+UIS.JumpRequest:Connect(function()
+	if State.InfJump then
+		lp.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	end
+end)
+
+-- UTILITY
+local freezeBtn = PageButton(UtilPage,"FREEZE : OFF",Color3.fromRGB(30,60,120))
+local hopBtn = PageButton(UtilPage,"SERVER HOP",Color3.fromRGB(120,40,40))
+
+freezeBtn.MouseButton1Click:Connect(function()
+	State.Frozen = not State.Frozen
+	State.FrozenCFrame = State.Frozen and lp.Character.HumanoidRootPart.CFrame or nil
+	freezeBtn.Text = "FREEZE : "..(State.Frozen and "ON" or "OFF")
+end)
+
+hopBtn.MouseButton1Click:Connect(function()
+	local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?limit=100"
+	local servers = HttpService:JSONDecode(game:HttpGet(url)).data
+	for _,v in pairs(servers) do
+		if v.playing < v.maxPlayers and v.id ~= game.JobId then
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id)
+			break
+		end
+	end
+end)
+
+-- GACHA
+local autoBtn = PageButton(GachaPage,"AUTO WINTER : OFF",Color3.fromRGB(25,100,200))
+local mythBtn = PageButton(GachaPage,"STOP ON MYTH : OFF",Color3.fromRGB(25,80,180))
+
+autoBtn.MouseButton1Click:Connect(function()
+	State.AutoWinter = not State.AutoWinter
+	autoBtn.Text = "AUTO WINTER : "..(State.AutoWinter and "ON" or "OFF")
+end)
+
+mythBtn.MouseButton1Click:Connect(function()
+	State.StopMyth = not State.StopMyth
+	mythBtn.Text = "STOP ON MYTH : "..(State.StopMyth and "ON" or "OFF")
+end)
 
 -- LOOPS
 RunService.Heartbeat:Connect(function(dt)
-	if not lp.Character then return end
-	local hrp = lp.Character:FindFirstChild("HumanoidRootPart")
+	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 
 	if State.Frozen and State.FrozenCFrame then
@@ -181,110 +263,17 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 end)
 
--- TIMER LOOP
-task.spawn(function()
-	while task.wait(1) do
-		if State.TimerOn and State.TimeLeft > 0 then
-			State.TimeLeft -= 1
-			timerLabel.Text = string.format("%02d:%02d", math.floor(State.TimeLeft/60), State.TimeLeft%60)
-		end
-	end
-end)
-
--- BUTTON LOGIC
-espBtn.MouseButton1Click:Connect(function()
-	State.ESP = not State.ESP
-	espBtn.Text = "ESP : " .. (State.ESP and "ON" or "OFF")
-	for _,h in pairs(Highlights) do if h then h.Enabled = State.ESP end end
-end)
-flyBtn.MouseButton1Click:Connect(function()
-	State.Fly = not State.Fly
-	flyBtn.Text = "FLY : " .. (State.Fly and "ON" or "OFF")
-	local hum = lp.Character:FindFirstChildOfClass("Humanoid")
-	if hum then hum.PlatformStand = State.Fly end
-end)
-noclipBtn.MouseButton1Click:Connect(function()
-	State.Noclip = not State.Noclip
-	noclipBtn.Text = "NOCLIP : " .. (State.Noclip and "ON" or "OFF")
-end)
-speedBtn.MouseButton1Click:Connect(function()
-	local hum = lp.Character:FindFirstChildOfClass("Humanoid")
-	if not hum then return end
-	hum.WalkSpeed = hum.WalkSpeed == 16 and 100 or 16
-	speedBtn.Text = "SPEED : " .. (hum.WalkSpeed > 16 and "ON" or "OFF")
-end)
-jumpBtn.MouseButton1Click:Connect(function()
-	State.InfJump = not State.InfJump
-	jumpBtn.Text = "INF JUMP : " .. (State.InfJump and "ON" or "OFF")
-end)
-UIS.JumpRequest:Connect(function()
-	if State.InfJump then
-		local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
-		if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-	end
-end)
-freezeBtn.MouseButton1Click:Connect(function()
-	State.Frozen = not State.Frozen
-	State.FrozenCFrame = State.Frozen and lp.Character.HumanoidRootPart.CFrame or nil
-	freezeBtn.Text = "FREEZE : " .. (State.Frozen and "ON" or "OFF")
-end)
-startBtn.MouseButton1Click:Connect(function()
-	State.TimeLeft = tonumber(timeBox.Text) or 0
-	State.TimerOn = not State.TimerOn
-	startBtn.Text = State.TimerOn and "STOP TIMER" or "START TIMER"
-end)
-hopBtn.MouseButton1Click:Connect(function()
-	local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?limit=100"
-	local data = HttpService:JSONDecode(game:HttpGet(url)).data
-	for _,v in pairs(data) do
-		if v.playing < v.maxPlayers and v.id ~= game.JobId then
-			TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id)
-			break
-		end
-	end
-end)
-shutdown.MouseButton1Click:Connect(function()
-	gui:Destroy()
-end)
-
--- ===== WINTER GACHA CATEGORY =====
-local gachaLabel = Instance.new("TextLabel", container)
-gachaLabel.Text = "❄ WINTER GACHA"
-gachaLabel.Font = Enum.Font.GothamBold
-gachaLabel.TextSize = 16
-gachaLabel.TextColor3 = Color3.fromRGB(180,180,255)
-gachaLabel.BackgroundTransparency = 1
-gachaLabel.Size = UDim2.new(1,0,0,30)
-
-local autoGachaBtn = Button("AUTO-ROLL: OFF", Color3.fromRGB(25,100,200))
-local stopMythBtn  = Button("STOP ON MYTHICAL: OFF", Color3.fromRGB(25,80,180))
-
-autoGachaBtn.MouseButton1Click:Connect(function()
-	State.AutoWinter = not State.AutoWinter
-	autoGachaBtn.Text = "AUTO-ROLL: "..(State.AutoWinter and "ON" or "OFF")
-end)
-stopMythBtn.MouseButton1Click:Connect(function()
-	State.StopMyth = not State.StopMyth
-	stopMythBtn.Text = "STOP ON MYTHICAL: "..(State.StopMyth and "ON" or "OFF")
-end)
-
 -- WINTER GACHA LOOP
 task.spawn(function()
 	while task.wait(1) do
 		if State.AutoWinter then
-			-- trigger gacha roll
 			pcall(function()
 				ReplicatedStorage.Remotes.RollWinterGacha:FireServer(State.CandyCost)
 			end)
-
-			-- wait for server result
 			local result = ReplicatedStorage.Remotes.GachaResult.OnClientEvent:Wait()
-
-			-- check for mythical
 			if State.StopMyth and result.Rarity == "Mythical" then
 				State.AutoWinter = false
-				autoGachaBtn.Text = "AUTO-ROLL: OFF"
-				break
+				autoBtn.Text = "AUTO WINTER : OFF"
 			end
 		end
 	end

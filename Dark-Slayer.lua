@@ -29,7 +29,7 @@ local ESPConnections = {}
 
 --// GUI ROOT
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "ModernHub"
+Gui.Name = "KrakenHub"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 Gui.IgnoreGuiInset = true
@@ -39,53 +39,89 @@ Gui.Parent = PlayerGui
 local Main = Instance.new("Frame", Gui)
 Main.Size = UDim2.fromScale(0.45, 0.55)
 Main.Position = UDim2.fromScale(0.275, 0.225)
-Main.BackgroundColor3 = Color3.fromRGB(15,15,15)
+Main.BackgroundColor3 = Color3.fromRGB(12,12,15)
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
 local MainCorner = Instance.new("UICorner", Main)
-MainCorner.CornerRadius = UDim.new(0,12)
+MainCorner.CornerRadius = UDim.new(0,16)
 Main.ZIndex = 1
 
--- Gradient effect
+-- Animated gradient effect
 local UIGradient = Instance.new("UIGradient", Main)
 UIGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(25,25,25)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(15,15,15))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(20,15,25)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(15,20,25)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(20,15,25))
 })
-UIGradient.Rotation = 45
+UIGradient.Rotation = 0
+
+-- Animate gradient
+spawn(function()
+	while Gui.Parent do
+		for i = 0, 360, 2 do
+			UIGradient.Rotation = i
+			wait(0.05)
+		end
+	end
+end)
+
+-- Glow effect
+local MainGlow = Instance.new("UIStroke", Main)
+MainGlow.Color = Color3.fromRGB(100,50,200)
+MainGlow.Transparency = 0.7
+MainGlow.Thickness = 2
 
 --// TITLE BAR
 local TitleBar = Instance.new("Frame", Main)
 TitleBar.Size = UDim2.fromScale(1, 0.08)
-TitleBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+TitleBar.BackgroundColor3 = Color3.fromRGB(18,18,22)
 TitleBar.BorderSizePixel = 0
 local TitleBarCorner = Instance.new("UICorner", TitleBar)
-TitleBarCorner.CornerRadius = UDim.new(0,12)
+TitleBarCorner.CornerRadius = UDim.new(0,16)
 TitleBar.ZIndex = 5
 
--- Title bar gradient
+-- Animated title bar gradient
 local TitleGradient = Instance.new("UIGradient", TitleBar)
 TitleGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 0, 0)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 0, 0))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 200, 100)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 50, 200)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 200, 100))
 })
 TitleGradient.Transparency = NumberSequence.new({
-	NumberSequenceKeypoint.new(0, 0.7),
-	NumberSequenceKeypoint.new(1, 0.9)
+	NumberSequenceKeypoint.new(0, 0.6),
+	NumberSequenceKeypoint.new(1, 0.8)
 })
+
+-- Animate title gradient
+spawn(function()
+	while Gui.Parent do
+		for i = 0, 360, 3 do
+			TitleGradient.Rotation = i
+			wait(0.03)
+		end
+	end
+end)
 
 local Title = Instance.new("TextLabel", TitleBar)
 Title.Size = UDim2.fromScale(0.7, 1)
 Title.Position = UDim2.fromScale(0.03, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "Redz Hub"
+Title.Text = "Kraken-Hub"
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
+Title.TextSize = 20
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.ZIndex = 10
-Title.TextStrokeTransparency = 0.3
-Title.TextStrokeColor3 = Color3.fromRGB(200,0,0)
+Title.TextStrokeTransparency = 0.2
+Title.TextStrokeColor3 = Color3.fromRGB(100,50,200)
+
+-- Title gradient text effect
+local TitleTextGradient = Instance.new("UIGradient", Title)
+TitleTextGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 255, 150)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 100, 255))
+})
+TitleTextGradient.Transparency = NumberSequence.new(0)
 
 --// CLOSE BUTTON
 local Close = Instance.new("TextButton", TitleBar)
@@ -95,18 +131,27 @@ Close.Text = "✕"
 Close.Font = Enum.Font.GothamBold
 Close.TextSize = 18
 Close.TextColor3 = Color3.fromRGB(255,255,255)
-Close.BackgroundColor3 = Color3.fromRGB(200,0,0)
+Close.BackgroundColor3 = Color3.fromRGB(200,50,50)
 Close.BorderSizePixel = 0
 Close.AutoButtonColor = false
 Close.ZIndex = 10
 Close.TextStrokeTransparency = 0.3
 Close.TextStrokeColor3 = Color3.fromRGB(0,0,0)
-Instance.new("UICorner", Close).CornerRadius = UDim.new(0,8)
+local CloseCorner = Instance.new("UICorner", Close)
+CloseCorner.CornerRadius = UDim.new(0,10)
+
+local CloseGlow = Instance.new("UIStroke", Close)
+CloseGlow.Color = Color3.fromRGB(255,100,100)
+CloseGlow.Transparency = 0.8
+CloseGlow.Thickness = 1.5
+
 Close.MouseEnter:Connect(function()
-	Close.BackgroundColor3 = Color3.fromRGB(255,50,50)
+	TweenService:Create(Close, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255,80,80), Size = UDim2.fromScale(0.085, 0.65)}):Play()
+	TweenService:Create(CloseGlow, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
 end)
 Close.MouseLeave:Connect(function()
-	Close.BackgroundColor3 = Color3.fromRGB(200,0,0)
+	TweenService:Create(Close, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200,50,50), Size = UDim2.fromScale(0.08, 0.6)}):Play()
+	TweenService:Create(CloseGlow, TweenInfo.new(0.2), {Transparency = 0.8}):Play()
 end)
 Close.MouseButton1Click:Connect(function()
 	Gui:Destroy()
@@ -120,18 +165,27 @@ Minimize.Text = "—"
 Minimize.Font = Enum.Font.GothamBold
 Minimize.TextSize = 20
 Minimize.TextColor3 = Color3.fromRGB(255,255,255)
-Minimize.BackgroundColor3 = Color3.fromRGB(40,40,40)
+Minimize.BackgroundColor3 = Color3.fromRGB(40,40,50)
 Minimize.BorderSizePixel = 0
 Minimize.AutoButtonColor = false
 Minimize.ZIndex = 10
 Minimize.TextStrokeTransparency = 0.3
 Minimize.TextStrokeColor3 = Color3.fromRGB(0,0,0)
-Instance.new("UICorner", Minimize).CornerRadius = UDim.new(0,8)
+local MinimizeCorner = Instance.new("UICorner", Minimize)
+MinimizeCorner.CornerRadius = UDim.new(0,10)
+
+local MinimizeGlow = Instance.new("UIStroke", Minimize)
+MinimizeGlow.Color = Color3.fromRGB(100,200,150)
+MinimizeGlow.Transparency = 0.8
+MinimizeGlow.Thickness = 1.5
+
 Minimize.MouseEnter:Connect(function()
-	Minimize.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	TweenService:Create(Minimize, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60,60,70), Size = UDim2.fromScale(0.085, 0.65)}):Play()
+	TweenService:Create(MinimizeGlow, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
 end)
 Minimize.MouseLeave:Connect(function()
-	Minimize.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	TweenService:Create(Minimize, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40,40,50), Size = UDim2.fromScale(0.08, 0.6)}):Play()
+	TweenService:Create(MinimizeGlow, TweenInfo.new(0.2), {Transparency = 0.8}):Play()
 end)
 
 local Minimized = false
@@ -191,10 +245,19 @@ end)
 local Sidebar = Instance.new("Frame", Main)
 Sidebar.Position = UDim2.fromScale(0, 0.08)
 Sidebar.Size = UDim2.fromScale(0.25, 0.92)
-Sidebar.BackgroundColor3 = Color3.fromRGB(18,18,18)
+Sidebar.BackgroundColor3 = Color3.fromRGB(15,15,20)
 Sidebar.BorderSizePixel = 0
-Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0,12)
+local SidebarCorner = Instance.new("UICorner", Sidebar)
+SidebarCorner.CornerRadius = UDim.new(0,16)
 Sidebar.ZIndex = 3
+
+-- Sidebar gradient
+local SidebarGradient = Instance.new("UIGradient", Sidebar)
+SidebarGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(20,15,25)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(15,20,25))
+})
+SidebarGradient.Transparency = NumberSequence.new(0.3)
 
 --// CONTENT
 local Content = Instance.new("Frame", Main)
@@ -229,45 +292,66 @@ local function CreateTabButton(text, order, tabName)
 	btn.Text = text
 	btn.Font = Enum.Font.GothamSemibold
 	btn.TextSize = 14
-	btn.TextColor3 = Color3.fromRGB(200,200,200)
-	btn.BackgroundColor3 = Color3.fromRGB(25,25,25)
+	btn.TextColor3 = Color3.fromRGB(180,180,200)
+	btn.BackgroundColor3 = Color3.fromRGB(20,20,28)
 	btn.BorderSizePixel = 0
 	btn.AutoButtonColor = false
 	btn.ZIndex = 5
-	btn.TextStrokeTransparency = 0.5
+	btn.TextStrokeTransparency = 0.4
 	btn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 	local btnCorner = Instance.new("UICorner", btn)
-	btnCorner.CornerRadius = UDim.new(0,8)
+	btnCorner.CornerRadius = UDim.new(0,10)
+	
+	local btnGlow = Instance.new("UIStroke", btn)
+	btnGlow.Color = Color3.fromRGB(50,200,100)
+	btnGlow.Transparency = 1
+	btnGlow.Thickness = 1.5
 	
 	-- Hover effects
 	btn.MouseEnter:Connect(function()
 		if btn ~= SelectedButton then
-			btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+			TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30,30,38), TextColor3 = Color3.fromRGB(200,200,220)}):Play()
+			TweenService:Create(btnGlow, TweenInfo.new(0.2), {Transparency = 0.7}):Play()
 		end
 	end)
 	btn.MouseLeave:Connect(function()
 		if btn ~= SelectedButton then
-			btn.BackgroundColor3 = Color3.fromRGB(25,25,25)
+			TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20,20,28), TextColor3 = Color3.fromRGB(180,180,200)}):Play()
+			TweenService:Create(btnGlow, TweenInfo.new(0.2), {Transparency = 1}):Play()
 		end
 	end)
 	
 	btn.MouseButton1Click:Connect(function()
 		-- Update selected button
 		if SelectedButton then
-			SelectedButton.BackgroundColor3 = Color3.fromRGB(25,25,25)
-			SelectedButton.TextColor3 = Color3.fromRGB(200,200,200)
+			TweenService:Create(SelectedButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(20,20,28), TextColor3 = Color3.fromRGB(180,180,200)}):Play()
+			if SelectedButton:FindFirstChild("UIStroke") then
+				TweenService:Create(SelectedButton:FindFirstChild("UIStroke"), TweenInfo.new(0.2), {Transparency = 1}):Play()
+			end
 		end
 		SelectedButton = btn
-		btn.BackgroundColor3 = Color3.fromRGB(200,0,0)
-		btn.TextColor3 = Color3.fromRGB(255,255,255)
+		local selectedGradient = Instance.new("UIGradient", btn)
+		selectedGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 200, 100)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 50, 200))
+		})
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40,30,50), TextColor3 = Color3.fromRGB(255,255,255)}):Play()
+		TweenService:Create(btnGlow, TweenInfo.new(0.2), {Transparency = 0.2, Color = Color3.fromRGB(100,200,150)}):Play()
 		SwitchTab(tabName)
 	end)
 	
-	-- Set first button as selected
+	-- Set first button (SERVER) as selected
 	if order == 0 then
 		SelectedButton = btn
-		btn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+		local selectedGradient = Instance.new("UIGradient", btn)
+		selectedGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 200, 100)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 50, 200))
+		})
+		btn.BackgroundColor3 = Color3.fromRGB(40,30,50)
 		btn.TextColor3 = Color3.fromRGB(255,255,255)
+		btnGlow.Transparency = 0.2
+		btnGlow.Color = Color3.fromRGB(100,200,150)
 	end
 end
 
@@ -276,11 +360,16 @@ local function CreateToggle(parent, text, posY, callback)
 	local holder = Instance.new("Frame", parent)
 	holder.Size = UDim2.fromScale(0.85,0.12)
 	holder.Position = UDim2.fromScale(0.075, posY)
-	holder.BackgroundColor3 = Color3.fromRGB(25,25,25)
+	holder.BackgroundColor3 = Color3.fromRGB(20,20,28)
 	holder.BorderSizePixel = 0
 	holder.ZIndex = 4
 	local holderCorner = Instance.new("UICorner", holder)
-	holderCorner.CornerRadius = UDim.new(0,8)
+	holderCorner.CornerRadius = UDim.new(0,12)
+	
+	local holderGlow = Instance.new("UIStroke", holder)
+	holderGlow.Color = Color3.fromRGB(50,200,100)
+	holderGlow.Transparency = 0.9
+	holderGlow.Thickness = 1
 
 	local label = Instance.new("TextLabel", holder)
 	label.Size = UDim2.fromScale(0.7,1)
@@ -289,10 +378,10 @@ local function CreateToggle(parent, text, posY, callback)
 	label.Text = text
 	label.Font = Enum.Font.GothamSemibold
 	label.TextSize = 14
-	label.TextColor3 = Color3.fromRGB(240,240,240)
+	label.TextColor3 = Color3.fromRGB(240,240,255)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.ZIndex = 6
-	label.TextStrokeTransparency = 0.4
+	label.TextStrokeTransparency = 0.3
 	label.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 
 	local toggle = Instance.new("TextButton", holder)
@@ -302,40 +391,68 @@ local function CreateToggle(parent, text, posY, callback)
 	toggle.Font = Enum.Font.GothamBold
 	toggle.TextSize = 11
 	toggle.TextColor3 = Color3.fromRGB(255,255,255)
-	toggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	toggle.BackgroundColor3 = Color3.fromRGB(40,40,50)
 	toggle.BorderSizePixel = 0
 	toggle.AutoButtonColor = false
 	toggle.ZIndex = 6
-	toggle.TextStrokeTransparency = 0.3
+	toggle.TextStrokeTransparency = 0.2
 	toggle.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 	local toggleCorner = Instance.new("UICorner", toggle)
-	toggleCorner.CornerRadius = UDim.new(0,6)
+	toggleCorner.CornerRadius = UDim.new(0,8)
+	
+	local toggleGlow = Instance.new("UIStroke", toggle)
+	toggleGlow.Color = Color3.fromRGB(50,200,100)
+	toggleGlow.Transparency = 0.8
+	toggleGlow.Thickness = 1.5
+
+	toggle.MouseEnter:Connect(function()
+		if toggle.Text == "OFF" then
+			TweenService:Create(toggle, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(50,50,60)}):Play()
+		end
+	end)
+	toggle.MouseLeave:Connect(function()
+		if toggle.Text == "OFF" then
+			TweenService:Create(toggle, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(40,40,50)}):Play()
+		end
+	end)
 
 	toggle.MouseButton1Click:Connect(function()
 		local state = callback()
 		toggle.Text = state and "ON" or "OFF"
 		if state then
-			toggle.BackgroundColor3 = Color3.fromRGB(0,200,0)
-			toggle.TextColor3 = Color3.fromRGB(255,255,255)
+			local onGradient = Instance.new("UIGradient", toggle)
+			onGradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 220, 120)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 200, 150))
+			})
+			TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50,220,120), TextColor3 = Color3.fromRGB(255,255,255)}):Play()
+			TweenService:Create(toggleGlow, TweenInfo.new(0.2), {Transparency = 0.3, Color = Color3.fromRGB(50,255,150)}):Play()
 		else
-			toggle.BackgroundColor3 = Color3.fromRGB(40,40,40)
-			toggle.TextColor3 = Color3.fromRGB(200,200,200)
+			if toggle:FindFirstChild("UIGradient") then
+				toggle:FindFirstChild("UIGradient"):Destroy()
+			end
+			TweenService:Create(toggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40,40,50), TextColor3 = Color3.fromRGB(200,200,200)}):Play()
+			TweenService:Create(toggleGlow, TweenInfo.new(0.2), {Transparency = 0.8}):Play()
 		end
 	end)
 end
 
 --// TAB SETUP
-local FarmTab = CreateTab("Farm")
-local TravelTab = CreateTab("Travel")
-local CombatTab = CreateTab("Combat")
-local VisualTab = CreateTab("Visual")
 local ServerTab = CreateTab("Server")
+local FarmTab = CreateTab("Farm")
+local CombatTab = CreateTab("Combat")
+local SeaEventsTab = CreateTab("SeaEvents")
+local TravelTab = CreateTab("Travel")
+local VisualTab = CreateTab("Visual")
+local MiscTab = CreateTab("Misc")
 
-CreateTabButton("Farming", 0, "Farm")
-CreateTabButton("Teleport", 1, "Travel")
-CreateTabButton("Combat", 2, "Combat")
-CreateTabButton("ESP", 3, "Visual")
-CreateTabButton("Server", 4, "Server")
+CreateTabButton("SERVER", 0, "Server")
+CreateTabButton("FARMING", 1, "Farm")
+CreateTabButton("COMBAT", 2, "Combat")
+CreateTabButton("SEA EVENTS", 3, "SeaEvents")
+CreateTabButton("TELEPORT", 4, "Travel")
+CreateTabButton("ESP", 5, "Visual")
+CreateTabButton("MISC", 6, "Misc")
 
 --// TAB TOGGLES
 CreateToggle(FarmTab, "Auto Farm Enemies", 0.1, function()
@@ -372,6 +489,12 @@ CreateToggle(VisualTab, "ESP Overlay", 0.1, function()
 	return State.ESP
 end)
 
+-- Sea Events Tab (placeholder for future features)
+-- Add toggles/features here as needed
+
+-- Misc Tab (placeholder for future features)
+-- Add toggles/features here as needed
+
 --// SERVER TAB UI
 local SelectedPlayer = nil
 local DropdownOpen = false
@@ -404,27 +527,39 @@ DropdownButton.Position = UDim2.fromScale(0.33, 0.1)
 DropdownButton.Text = "Select Player..."
 DropdownButton.Font = Enum.Font.Gotham
 DropdownButton.TextSize = 13
-DropdownButton.TextColor3 = Color3.fromRGB(200,200,200)
-DropdownButton.BackgroundColor3 = Color3.fromRGB(35,35,35)
+DropdownButton.TextColor3 = Color3.fromRGB(200,200,220)
+DropdownButton.BackgroundColor3 = Color3.fromRGB(30,30,40)
 DropdownButton.BorderSizePixel = 0
 DropdownButton.AutoButtonColor = false
 DropdownButton.ZIndex = 5
-DropdownButton.TextStrokeTransparency = 0.4
+DropdownButton.TextStrokeTransparency = 0.3
 DropdownButton.TextStrokeColor3 = Color3.fromRGB(0,0,0)
-Instance.new("UICorner", DropdownButton).CornerRadius = UDim.new(0,6)
+local DropdownButtonCorner = Instance.new("UICorner", DropdownButton)
+DropdownButtonCorner.CornerRadius = UDim.new(0,8)
+
+local DropdownButtonGlow = Instance.new("UIStroke", DropdownButton)
+DropdownButtonGlow.Color = Color3.fromRGB(50,200,100)
+DropdownButtonGlow.Transparency = 0.9
+DropdownButtonGlow.Thickness = 1
 
 -- Dropdown list (hidden by default)
 local DropdownList = Instance.new("ScrollingFrame", ServerTab)
 DropdownList.Size = UDim2.fromScale(0.4, 0.3)
 DropdownList.Position = UDim2.fromScale(0.55, 0.14)
-DropdownList.BackgroundColor3 = Color3.fromRGB(25,25,25)
+DropdownList.BackgroundColor3 = Color3.fromRGB(20,20,28)
 DropdownList.BorderSizePixel = 0
 DropdownList.Visible = false
 DropdownList.ZIndex = 6
 DropdownList.CanvasSize = UDim2.new(0, 0, 0, 0)
 DropdownList.ScrollBarThickness = 4
-DropdownList.ScrollBarImageColor3 = Color3.fromRGB(200,0,0)
-Instance.new("UICorner", DropdownList).CornerRadius = UDim.new(0,8)
+DropdownList.ScrollBarImageColor3 = Color3.fromRGB(50,200,100)
+local DropdownListCorner = Instance.new("UICorner", DropdownList)
+DropdownListCorner.CornerRadius = UDim.new(0,12)
+
+local DropdownListGlow = Instance.new("UIStroke", DropdownList)
+DropdownListGlow.Color = Color3.fromRGB(150,50,200)
+DropdownListGlow.Transparency = 0.7
+DropdownListGlow.Thickness = 2
 
 local DropdownListLayout = Instance.new("UIListLayout", DropdownList)
 DropdownListLayout.Padding = UDim.new(0, 2)
@@ -434,13 +569,19 @@ DropdownListLayout.SortOrder = Enum.SortOrder.Name
 local InfoContainer = Instance.new("ScrollingFrame", ServerTab)
 InfoContainer.Size = UDim2.fromScale(0.9, 0.75)
 InfoContainer.Position = UDim2.fromScale(0.05, 0.2)
-InfoContainer.BackgroundColor3 = Color3.fromRGB(20,20,20)
+InfoContainer.BackgroundColor3 = Color3.fromRGB(18,18,25)
 InfoContainer.BorderSizePixel = 0
 InfoContainer.ZIndex = 4
 InfoContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
 InfoContainer.ScrollBarThickness = 4
-InfoContainer.ScrollBarImageColor3 = Color3.fromRGB(200,0,0)
-Instance.new("UICorner", InfoContainer).CornerRadius = UDim.new(0,8)
+InfoContainer.ScrollBarImageColor3 = Color3.fromRGB(50,200,100)
+local InfoContainerCorner = Instance.new("UICorner", InfoContainer)
+InfoContainerCorner.CornerRadius = UDim.new(0,12)
+
+local InfoContainerGlow = Instance.new("UIStroke", InfoContainer)
+InfoContainerGlow.Color = Color3.fromRGB(150,50,200)
+InfoContainerGlow.Transparency = 0.8
+InfoContainerGlow.Thickness = 1.5
 
 local InfoLayout = Instance.new("UIListLayout", InfoContainer)
 InfoLayout.Padding = UDim.new(0, 5)
@@ -465,20 +606,36 @@ local function UpdateDropdown()
 		playerBtn.Text = player.Name
 		playerBtn.Font = Enum.Font.Gotham
 		playerBtn.TextSize = 13
-		playerBtn.TextColor3 = Color3.fromRGB(240,240,240)
-		playerBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+		playerBtn.TextColor3 = Color3.fromRGB(240,240,255)
+		playerBtn.BackgroundColor3 = Color3.fromRGB(30,30,40)
 		playerBtn.BorderSizePixel = 0
 		playerBtn.AutoButtonColor = false
 		playerBtn.ZIndex = 7
-		playerBtn.TextStrokeTransparency = 0.4
+		playerBtn.TextStrokeTransparency = 0.3
 		playerBtn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
-		Instance.new("UICorner", playerBtn).CornerRadius = UDim.new(0,6)
+		local PlayerBtnCorner = Instance.new("UICorner", playerBtn)
+		PlayerBtnCorner.CornerRadius = UDim.new(0,8)
+		
+		local PlayerBtnGlow = Instance.new("UIStroke", playerBtn)
+		PlayerBtnGlow.Color = Color3.fromRGB(50,200,100)
+		PlayerBtnGlow.Transparency = 1
+		PlayerBtnGlow.Thickness = 1.5
 		
 		playerBtn.MouseEnter:Connect(function()
-			playerBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+			local hoverGradient = Instance.new("UIGradient", playerBtn)
+			hoverGradient.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 200, 100)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 50, 200))
+			})
+			TweenService:Create(playerBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40,30,50), TextColor3 = Color3.fromRGB(255,255,255)}):Play()
+			TweenService:Create(PlayerBtnGlow, TweenInfo.new(0.2), {Transparency = 0.3}):Play()
 		end)
 		playerBtn.MouseLeave:Connect(function()
-			playerBtn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+			if playerBtn:FindFirstChild("UIGradient") then
+				playerBtn:FindFirstChild("UIGradient"):Destroy()
+			end
+			TweenService:Create(playerBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30,30,40), TextColor3 = Color3.fromRGB(240,240,255)}):Play()
+			TweenService:Create(PlayerBtnGlow, TweenInfo.new(0.2), {Transparency = 1}):Play()
 		end)
 		
 		playerBtn.MouseButton1Click:Connect(function()
@@ -617,10 +774,12 @@ end
 
 -- Dropdown button functionality
 DropdownButton.MouseEnter:Connect(function()
-	DropdownButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
+	TweenService:Create(DropdownButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40,40,50)}):Play()
+	TweenService:Create(DropdownButtonGlow, TweenInfo.new(0.2), {Transparency = 0.5}):Play()
 end)
 DropdownButton.MouseLeave:Connect(function()
-	DropdownButton.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	TweenService:Create(DropdownButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30,30,40)}):Play()
+	TweenService:Create(DropdownButtonGlow, TweenInfo.new(0.2), {Transparency = 0.9}):Play()
 end)
 
 DropdownButton.MouseButton1Click:Connect(function()
@@ -653,7 +812,7 @@ Players.PlayerRemoving:Connect(function(player)
 	end
 end)
 
-SwitchTab("Farm")
+SwitchTab("Server")
 
 --// UTILITY FUNCTIONS
 local function GetClosestEnemy()
@@ -716,13 +875,13 @@ local function CreateESP(player)
 	local character = player.Character
 	if ESPObjects[player] then return end
 	
-	-- Create Highlight for visual outline
+	-- Create Highlight for visual outline (green/purple theme)
 	local highlight = Instance.new("Highlight")
 	highlight.Name = "ESP_Highlight"
-	highlight.FillTransparency = 0.5
-	highlight.FillColor = Color3.fromRGB(200, 0, 0)
+	highlight.FillTransparency = 0.6
+	highlight.FillColor = Color3.fromRGB(50, 200, 100)
 	highlight.OutlineTransparency = 0
-	highlight.OutlineColor = Color3.fromRGB(255, 50, 50)
+	highlight.OutlineColor = Color3.fromRGB(150, 50, 200)
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 	highlight.Parent = character
 	ESPHighlights[player] = highlight
@@ -750,7 +909,14 @@ local function CreateESP(player)
 	nameLabel.TextSize = 16
 	nameLabel.Font = Enum.Font.GothamBold
 	nameLabel.TextStrokeTransparency = 0.3
-	nameLabel.TextStrokeColor3 = Color3.fromRGB(200, 0, 0)
+	nameLabel.TextStrokeColor3 = Color3.fromRGB(150, 50, 200)
+	
+	-- Name gradient effect
+	local nameGradient = Instance.new("UIGradient", nameLabel)
+	nameGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 255, 150)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 100, 255))
+	})
 	
 	ESPObjects[player] = billboard
 end

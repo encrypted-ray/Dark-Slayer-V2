@@ -1,4 +1,4 @@
--- DARK SLAYER V2 | REDZ HUB STYLE | MOBILE FIXED
+-- DARK SLAYER V2 | REDZ HUB STYLE | FULLY FIXED
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -35,16 +35,15 @@ if CoreGui:FindFirstChild("DarkSlayerRedz") then
 end
 
 -- GUI ROOT
-local gui = Instance.new("ScreenGui")
+local gui = Instance.new("ScreenGui", CoreGui)
 gui.Name = "DarkSlayerRedz"
 gui.ResetOnSpawn = false
-gui.Parent = CoreGui
 
 local isMobile = UIS.TouchEnabled
 
--- MAIN FRAME (MOBILE SAFE)
+-- MAIN FRAME
 local main = Instance.new("Frame", gui)
-main.Size = isMobile and UDim2.fromOffset(360, 260) or UDim2.fromOffset(620, 380)
+main.Size = isMobile and UDim2.fromOffset(380, 270) or UDim2.fromOffset(640, 400)
 main.Position = UDim2.fromScale(0.5, 0.5)
 main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.BackgroundColor3 = Color3.fromRGB(16,16,16)
@@ -53,15 +52,17 @@ main.Active = true
 main.Draggable = not isMobile
 Instance.new("UICorner", main).CornerRadius = UDim.new(0,14)
 
+----------------------------------------------------------------
 -- TITLE BAR
+----------------------------------------------------------------
 local titleBar = Instance.new("Frame", main)
-titleBar.Size = UDim2.new(1,0,0,36)
+titleBar.Size = UDim2.new(1,0,0,38)
 titleBar.BackgroundColor3 = Color3.fromRGB(20,20,20)
 titleBar.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", titleBar)
-title.Size = UDim2.new(1,-40,1,0)
-title.Position = UDim2.new(0,10,0,0)
+title.Size = UDim2.new(1,-60,1,0)
+title.Position = UDim2.new(0,12,0,0)
 title.BackgroundTransparency = 1
 title.Text = "DARK SLAYER V2"
 title.Font = Enum.Font.GothamBold
@@ -70,13 +71,13 @@ title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 local close = Instance.new("TextButton", titleBar)
-close.Size = UDim2.fromOffset(28,22)
-close.Position = UDim2.new(1,-32,0.5,-11)
+close.Size = UDim2.fromOffset(32,24)
+close.Position = UDim2.new(1,-38,0.5,-12)
 close.Text = "✕"
 close.Font = Enum.Font.GothamBold
 close.TextSize = 14
 close.TextColor3 = Color3.fromRGB(255,90,90)
-close.BackgroundColor3 = Color3.fromRGB(35,35,35)
+close.BackgroundColor3 = Color3.fromRGB(40,40,40)
 close.BorderSizePixel = 0
 Instance.new("UICorner", close)
 
@@ -84,45 +85,47 @@ close.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
 
+----------------------------------------------------------------
 -- SIDEBAR
+----------------------------------------------------------------
 local sidebar = Instance.new("Frame", main)
-sidebar.Position = UDim2.new(0,0,0,36)
-sidebar.Size = UDim2.fromOffset(110, main.Size.Y.Offset - 36)
+sidebar.Position = UDim2.new(0,0,0,38)
+sidebar.Size = UDim2.fromOffset(120, main.Size.Y.Offset - 38)
 sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 sidebar.BorderSizePixel = 0
-
-local sidePad = Instance.new("UIPadding", sidebar)
-sidePad.PaddingTop = UDim.new(0,6)
 
 local sideList = Instance.new("UIListLayout", sidebar)
 sideList.Padding = UDim.new(0,6)
 sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sideList.VerticalAlignment = Enum.VerticalAlignment.Center
 
--- CONTENT HOLDER
+----------------------------------------------------------------
+-- PAGES
+----------------------------------------------------------------
 local pages = Instance.new("Frame", main)
-pages.Position = UDim2.fromOffset(110, 36)
-pages.Size = UDim2.new(1,-110,1,-36)
+pages.Position = UDim2.fromOffset(120,38)
+pages.Size = UDim2.new(1,-120,1,-38)
 pages.BackgroundTransparency = 1
 
--- PAGE SYSTEM
 local Pages = {}
+local Tabs = {}
 
 local function CreatePage(name)
 	local scroll = Instance.new("ScrollingFrame", pages)
 	scroll.Size = UDim2.fromScale(1,1)
 	scroll.CanvasSize = UDim2.new(0,0,0,0)
-	scroll.ScrollBarImageTransparency = 0.6
-	scroll.Visible = false
-	scroll.BackgroundTransparency = 1
 	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.ScrollBarImageTransparency = 0.6
+	scroll.BackgroundTransparency = 1
+	scroll.Visible = false
 
 	local pad = Instance.new("UIPadding", scroll)
-	pad.PaddingTop = UDim.new(0,10)
-	pad.PaddingLeft = UDim.new(0,10)
-	pad.PaddingRight = UDim.new(0,10)
+	pad.PaddingTop = UDim.new(0,12)
+	pad.PaddingLeft = UDim.new(0,12)
+	pad.PaddingRight = UDim.new(0,12)
 
 	local list = Instance.new("UIListLayout", scroll)
-	list.Padding = UDim.new(0,8)
+	list.Padding = UDim.new(0,10)
 
 	Pages[name] = scroll
 	return scroll
@@ -130,7 +133,7 @@ end
 
 local function CreateTab(name)
 	local b = Instance.new("TextButton", sidebar)
-	b.Size = UDim2.new(1,-12,0,34)
+	b.Size = UDim2.new(1,-16,0,36)
 	b.Text = name
 	b.Font = Enum.Font.GothamMedium
 	b.TextSize = 13
@@ -140,25 +143,32 @@ local function CreateTab(name)
 	Instance.new("UICorner", b)
 
 	b.MouseButton1Click:Connect(function()
-		for _,p in pairs(Pages) do p.Visible = false end
+		for n,p in pairs(Pages) do p.Visible = false end
+		for _,t in pairs(Tabs) do t.BackgroundColor3 = Color3.fromRGB(30,30,30) end
 		Pages[name].Visible = true
+		b.BackgroundColor3 = Color3.fromRGB(45,45,45)
 	end)
+
+	Tabs[name] = b
+	return b
 end
 
-local function PageButton(parent, text, color)
+local function ToggleButton(parent, label, color)
 	local b = Instance.new("TextButton", parent)
-	b.Size = UDim2.new(1,0,0,34)
-	b.Text = text
+	b.Size = UDim2.new(1,0,0,38)
+	b.Text = label
 	b.Font = Enum.Font.GothamMedium
 	b.TextSize = 13
 	b.TextColor3 = Color3.new(1,1,1)
-	b.BackgroundColor3 = color or Color3.fromRGB(32,32,32)
+	b.BackgroundColor3 = color or Color3.fromRGB(35,35,35)
 	b.BorderSizePixel = 0
 	Instance.new("UICorner", b)
 	return b
 end
 
--- CREATE PAGES + TABS
+----------------------------------------------------------------
+-- CREATE PAGES & TABS
+----------------------------------------------------------------
 local ESPPage = CreatePage("ESP")
 local MovePage = CreatePage("Movement")
 local UtilPage = CreatePage("Utility")
@@ -169,20 +179,48 @@ CreateTab("Movement")
 CreateTab("Utility")
 CreateTab("Gacha")
 
-ESPPage.Visible = true
+Pages.ESP.Visible = true
+Tabs.ESP.BackgroundColor3 = Color3.fromRGB(45,45,45)
 
--- ESP
-local espBtn = PageButton(ESPPage,"ESP : OFF",Color3.fromRGB(90,30,30))
+----------------------------------------------------------------
+-- ESP (REAL)
+----------------------------------------------------------------
+local Highlights = {}
+
+local function ApplyESP(player)
+	if player == lp then return end
+	local function onChar(char)
+		if Highlights[player] then Highlights[player]:Destroy() end
+		local h = Instance.new("Highlight")
+		h.FillColor = Color3.fromRGB(255,70,70)
+		h.OutlineColor = Color3.new(1,1,1)
+		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+		h.Enabled = State.ESP
+		h.Adornee = char
+		h.Parent = char
+		Highlights[player] = h
+	end
+	player.CharacterAdded:Connect(onChar)
+	if player.Character then onChar(player.Character) end
+end
+
+for _,p in ipairs(Players:GetPlayers()) do ApplyESP(p) end
+Players.PlayerAdded:Connect(ApplyESP)
+
+local espBtn = ToggleButton(ESPPage,"ESP : OFF",Color3.fromRGB(120,40,40))
 espBtn.MouseButton1Click:Connect(function()
 	State.ESP = not State.ESP
 	espBtn.Text = "ESP : "..(State.ESP and "ON" or "OFF")
+	for _,h in pairs(Highlights) do if h then h.Enabled = State.ESP end end
 end)
 
+----------------------------------------------------------------
 -- MOVEMENT
-local flyBtn = PageButton(MovePage,"FLY : OFF")
-local noclipBtn = PageButton(MovePage,"NOCLIP : OFF")
-local jumpBtn = PageButton(MovePage,"INF JUMP : OFF")
-local speedBtn = PageButton(MovePage,"SPEED : OFF")
+----------------------------------------------------------------
+local flyBtn = ToggleButton(MovePage,"FLY : OFF")
+local noclipBtn = ToggleButton(MovePage,"NOCLIP : OFF")
+local jumpBtn = ToggleButton(MovePage,"INF JUMP : OFF")
+local speedBtn = ToggleButton(MovePage,"SPEED : OFF")
 
 flyBtn.MouseButton1Click:Connect(function()
 	State.Fly = not State.Fly
@@ -212,9 +250,11 @@ UIS.JumpRequest:Connect(function()
 	end
 end)
 
+----------------------------------------------------------------
 -- UTILITY
-local freezeBtn = PageButton(UtilPage,"FREEZE : OFF",Color3.fromRGB(30,60,120))
-local hopBtn = PageButton(UtilPage,"SERVER HOP",Color3.fromRGB(120,40,40))
+----------------------------------------------------------------
+local freezeBtn = ToggleButton(UtilPage,"FREEZE : OFF",Color3.fromRGB(40,80,160))
+local hopBtn = ToggleButton(UtilPage,"SERVER HOP",Color3.fromRGB(140,60,60))
 
 freezeBtn.MouseButton1Click:Connect(function()
 	State.Frozen = not State.Frozen
@@ -233,9 +273,11 @@ hopBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- GACHA
-local autoBtn = PageButton(GachaPage,"AUTO WINTER : OFF",Color3.fromRGB(25,100,200))
-local mythBtn = PageButton(GachaPage,"STOP ON MYTH : OFF",Color3.fromRGB(25,80,180))
+----------------------------------------------------------------
+-- GACHA (SAFE)
+----------------------------------------------------------------
+local autoBtn = ToggleButton(GachaPage,"AUTO WINTER : OFF",Color3.fromRGB(30,110,210))
+local mythBtn = ToggleButton(GachaPage,"STOP ON MYTH : OFF",Color3.fromRGB(30,90,190))
 
 autoBtn.MouseButton1Click:Connect(function()
 	State.AutoWinter = not State.AutoWinter
@@ -247,7 +289,19 @@ mythBtn.MouseButton1Click:Connect(function()
 	mythBtn.Text = "STOP ON MYTH : "..(State.StopMyth and "ON" or "OFF")
 end)
 
+task.spawn(function()
+	while task.wait(1) do
+		if State.AutoWinter then
+			pcall(function()
+				ReplicatedStorage.Remotes.RollWinterGacha:FireServer(State.CandyCost)
+			end)
+		end
+	end
+end)
+
+----------------------------------------------------------------
 -- CORE LOOPS
+----------------------------------------------------------------
 RunService.Heartbeat:Connect(function(dt)
 	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
@@ -269,22 +323,6 @@ RunService.Heartbeat:Connect(function(dt)
 	if State.Noclip then
 		for _,v in ipairs(lp.Character:GetDescendants()) do
 			if v:IsA("BasePart") then v.CanCollide = false end
-		end
-	end
-end)
-
--- WINTER GACHA LOOP
-task.spawn(function()
-	while task.wait(1) do
-		if State.AutoWinter then
-			pcall(function()
-				ReplicatedStorage.Remotes.RollWinterGacha:FireServer(State.CandyCost)
-			end)
-			local result = ReplicatedStorage.Remotes.GachaResult.OnClientEvent:Wait()
-			if State.StopMyth and result.Rarity == "Mythical" then
-				State.AutoWinter = false
-				autoBtn.Text = "AUTO WINTER : OFF"
-			end
 		end
 	end
 end)

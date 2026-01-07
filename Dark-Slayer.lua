@@ -1,4 +1,4 @@
--- KRAKEN HUB | REDZ-STYLE UI (FULL + ROUNDED + NAME ESP)
+-- KRAKEN HUB | SSS-TIER REDZ STYLE UI (FIXED FIT)
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -13,19 +13,18 @@ local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 
 local lp = Players.LocalPlayer
-repeat task.wait() until lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 local cam = workspace.CurrentCamera
 
 ----------------------------------------------------------------
--- ACCENT + RADIUS
+-- CONFIG
 ----------------------------------------------------------------
-local ACCENT = Color3.fromRGB(155, 89, 255)
-local ACCENT_DARK = Color3.fromRGB(90, 55, 160)
+local ACCENT = Color3.fromRGB(155,89,255)
+local ACCENT_DARK = Color3.fromRGB(90,55,160)
 
-local R_MAIN = 18
-local R_SECTION = 16
-local R_BUTTON = 14
-local R_TOGGLE = 16
+local R_MAIN = 20
+local R_SECTION = 18
+local R_BUTTON = 16
+local R_TOGGLE = 18
 local R_PILL = 999
 
 ----------------------------------------------------------------
@@ -35,8 +34,7 @@ local State = {
 	ESP = false,
 	Fly = false,
 	Noclip = false,
-	InfJump = false,
-	Minimized = false
+	InfJump = false
 }
 
 ----------------------------------------------------------------
@@ -47,23 +45,24 @@ if CoreGui:FindFirstChild("KrakenHub") then
 end
 
 ----------------------------------------------------------------
--- GUI ROOT
+-- ROOT GUI
 ----------------------------------------------------------------
 local gui = Instance.new("ScreenGui", CoreGui)
 gui.Name = "KrakenHub"
 gui.ResetOnSpawn = false
 
 ----------------------------------------------------------------
--- MAIN FRAME
+-- MAIN FRAME (FIXED SIZE)
 ----------------------------------------------------------------
-local MAIN_SIZE = Vector2.new(640,400)
-local TITLE_HEIGHT = 38
+local MAIN_W, MAIN_H = 560, 360
+local TITLE_H = 36
+local SIDE_W = 120
 
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.fromOffset(MAIN_SIZE.X, MAIN_SIZE.Y)
+main.Size = UDim2.fromOffset(MAIN_W, MAIN_H)
 main.Position = UDim2.fromScale(0.5,0.5)
 main.AnchorPoint = Vector2.new(0.5,0.5)
-main.BackgroundColor3 = Color3.fromRGB(18,18,18)
+main.BackgroundColor3 = Color3.fromRGB(16,16,16)
 main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
@@ -77,7 +76,7 @@ stroke.Thickness = 1
 -- TITLE BAR
 ----------------------------------------------------------------
 local titleBar = Instance.new("Frame", main)
-titleBar.Size = UDim2.new(1,0,0,TITLE_HEIGHT)
+titleBar.Size = UDim2.new(1,0,0,TITLE_H)
 titleBar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 titleBar.BorderSizePixel = 0
 Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0,R_SECTION)
@@ -94,32 +93,29 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 
 local function TitleBtn(txt,x)
 	local b = Instance.new("TextButton", titleBar)
-	b.Size = UDim2.fromOffset(26,22)
-	b.Position = UDim2.new(1,x,0.5,-11)
+	b.Size = UDim2.fromOffset(24,20)
+	b.Position = UDim2.new(1,x,0.5,-10)
 	b.Text = txt
 	b.Font = Enum.Font.GothamBold
-	b.TextSize = 15
+	b.TextSize = 14
 	b.TextColor3 = Color3.new(1,1,1)
-	b.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	b.BackgroundColor3 = Color3.fromRGB(32,32,32)
 	b.BorderSizePixel = 0
 	Instance.new("UICorner", b).CornerRadius = UDim.new(0,R_BUTTON)
 	return b
 end
 
-local minimize = TitleBtn("-", -64)
-local close = TitleBtn("X", -34)
+TitleBtn("-", -60)
+local close = TitleBtn("X", -30)
 close.BackgroundColor3 = Color3.fromRGB(90,40,40)
-
-close.MouseButton1Click:Connect(function()
-	gui:Destroy()
-end)
+close.MouseButton1Click:Connect(function() gui:Destroy() end)
 
 ----------------------------------------------------------------
--- SIDEBAR
+-- SIDEBAR (FIXED WIDTH)
 ----------------------------------------------------------------
 local sidebar = Instance.new("Frame", main)
-sidebar.Position = UDim2.new(0,0,0,TITLE_HEIGHT)
-sidebar.Size = UDim2.fromOffset(130, MAIN_SIZE.Y - TITLE_HEIGHT)
+sidebar.Position = UDim2.new(0,0,0,TITLE_H)
+sidebar.Size = UDim2.fromOffset(SIDE_W, MAIN_H - TITLE_H)
 sidebar.BackgroundColor3 = Color3.fromRGB(22,22,22)
 sidebar.BorderSizePixel = 0
 Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0,R_SECTION)
@@ -130,11 +126,11 @@ sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 sideList.VerticalAlignment = Enum.VerticalAlignment.Center
 
 ----------------------------------------------------------------
--- PAGES
+-- PAGES CONTAINER (CLAMPED)
 ----------------------------------------------------------------
 local pages = Instance.new("Frame", main)
-pages.Position = UDim2.fromOffset(130, TITLE_HEIGHT)
-pages.Size = UDim2.new(1,-130,1,-TITLE_HEIGHT)
+pages.Position = UDim2.new(0,SIDE_W,0,TITLE_H)
+pages.Size = UDim2.new(1,-SIDE_W,1,-TITLE_H)
 pages.BackgroundTransparency = 1
 
 local Pages, Tabs = {}, {}
@@ -142,8 +138,9 @@ local Pages, Tabs = {}, {}
 local function CreatePage(name)
 	local s = Instance.new("ScrollingFrame", pages)
 	s.Size = UDim2.fromScale(1,1)
+	s.CanvasSize = UDim2.new(0,0,0,0)
 	s.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	s.ScrollBarImageTransparency = 0.8
+	s.ScrollBarImageTransparency = 0.9
 	s.BackgroundTransparency = 1
 	s.Visible = false
 
@@ -151,9 +148,10 @@ local function CreatePage(name)
 	pad.PaddingTop = UDim.new(0,12)
 	pad.PaddingLeft = UDim.new(0,12)
 	pad.PaddingRight = UDim.new(0,12)
+	pad.PaddingBottom = UDim.new(0,12)
 
 	local list = Instance.new("UIListLayout", s)
-	list.Padding = UDim.new(0,10)
+	list.Padding = UDim.new(0,8)
 
 	Pages[name] = s
 	return s
@@ -161,7 +159,7 @@ end
 
 local function CreateTab(name)
 	local b = Instance.new("TextButton", sidebar)
-	b.Size = UDim2.new(1,-16,0,34)
+	b.Size = UDim2.new(1,-14,0,32)
 	b.Text = name
 	b.Font = Enum.Font.Gotham
 	b.TextSize = 12
@@ -182,7 +180,7 @@ local function CreateTab(name)
 end
 
 ----------------------------------------------------------------
--- REDZ STYLE TABS
+-- REDZ TABS
 ----------------------------------------------------------------
 local MainPage     = CreatePage("Main")
 local PlayerPage   = CreatePage("Player")
@@ -192,30 +190,26 @@ local GachaPage    = CreatePage("Gacha")
 local MiscPage     = CreatePage("Misc")
 local UIPage       = CreatePage("UI Settings")
 
-CreateTab("Main")
-CreateTab("Player")
-CreateTab("Teleport")
-CreateTab("Visuals")
-CreateTab("Gacha")
-CreateTab("Misc")
-CreateTab("UI Settings")
+for _,n in ipairs({
+	"Main","Player","Teleport","Visuals","Gacha","Misc","UI Settings"
+}) do CreateTab(n) end
 
-Pages["Main"].Visible = true
-Tabs["Main"].BackgroundColor3 = ACCENT_DARK
+Pages.Main.Visible = true
+Tabs.Main.BackgroundColor3 = ACCENT_DARK
 
 ----------------------------------------------------------------
--- TOGGLE
+-- REDZ-STYLE TOGGLE (FIXED WIDTH)
 ----------------------------------------------------------------
 local function CreateToggle(parent,text,default,callback)
 	local h = Instance.new("Frame", parent)
-	h.Size = UDim2.new(1,0,0,38)
-	h.BackgroundColor3 = Color3.fromRGB(28,28,28)
+	h.Size = UDim2.new(1,0,0,36)
+	h.BackgroundColor3 = Color3.fromRGB(26,26,26)
 	h.BorderSizePixel = 0
 	Instance.new("UICorner", h).CornerRadius = UDim.new(0,R_TOGGLE)
 
 	local l = Instance.new("TextLabel", h)
-	l.Size = UDim2.new(1,-60,1,0)
-	l.Position = UDim2.new(0,10,0,0)
+	l.Size = UDim2.new(1,-70,1,0)
+	l.Position = UDim2.new(0,12,0,0)
 	l.BackgroundTransparency = 1
 	l.Text = text
 	l.Font = Enum.Font.Gotham
@@ -224,15 +218,15 @@ local function CreateToggle(parent,text,default,callback)
 	l.TextXAlignment = Enum.TextXAlignment.Left
 
 	local bg = Instance.new("Frame", h)
-	bg.Size = UDim2.fromOffset(36,18)
-	bg.Position = UDim2.new(1,-48,0.5,-9)
+	bg.Size = UDim2.fromOffset(34,16)
+	bg.Position = UDim2.new(1,-46,0.5,-8)
 	bg.BackgroundColor3 = default and ACCENT or Color3.fromRGB(70,70,70)
 	bg.BorderSizePixel = 0
 	Instance.new("UICorner", bg).CornerRadius = UDim.new(0,R_PILL)
 
 	local k = Instance.new("Frame", bg)
-	k.Size = UDim2.fromOffset(14,14)
-	k.Position = default and UDim2.new(1,-16,0.5,-7) or UDim2.new(0,2,0.5,-7)
+	k.Size = UDim2.fromOffset(12,12)
+	k.Position = default and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
 	k.BackgroundColor3 = Color3.new(1,1,1)
 	k.BorderSizePixel = 0
 	Instance.new("UICorner", k).CornerRadius = UDim.new(0,R_PILL)
@@ -240,11 +234,11 @@ local function CreateToggle(parent,text,default,callback)
 	local state = default
 	local function Set(v)
 		state = v
-		TweenService:Create(bg,TweenInfo.new(0.18),{
+		TweenService:Create(bg,TweenInfo.new(0.15),{
 			BackgroundColor3 = state and ACCENT or Color3.fromRGB(70,70,70)
 		}):Play()
-		TweenService:Create(k,TweenInfo.new(0.18),{
-			Position = state and UDim2.new(1,-16,0.5,-7) or UDim2.new(0,2,0.5,-7)
+		TweenService:Create(k,TweenInfo.new(0.15),{
+			Position = state and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
 		}):Play()
 		if callback then callback(state) end
 	end
@@ -259,91 +253,38 @@ local function CreateToggle(parent,text,default,callback)
 end
 
 ----------------------------------------------------------------
--- PLAYER ESP + NAME
+-- PLAYER PAGE (ALL TOGGLES)
 ----------------------------------------------------------------
-local ESP = {}
-
-local function AddESP(plr)
-	if plr == lp then return end
-	local function attach(char)
-		if ESP[plr] then ESP[plr]:Destroy() end
-		local h = Instance.new("Highlight", workspace)
-		h.Adornee = char
-		h.FillColor = ACCENT
-		h.OutlineColor = Color3.new(1,1,1)
-		h.Enabled = State.ESP
-		ESP[plr] = h
-
-		local head = char:WaitForChild("Head",5)
-		if head then
-			local bill = Instance.new("BillboardGui", head)
-			bill.Size = UDim2.fromOffset(120,20)
-			bill.StudsOffset = Vector3.new(0,2.6,0)
-			bill.AlwaysOnTop = true
-			bill.Enabled = State.ESP
-
-			local t = Instance.new("TextLabel", bill)
-			t.Size = UDim2.fromScale(1,1)
-			t.BackgroundTransparency = 1
-			t.Text = plr.DisplayName
-			t.Font = Enum.Font.GothamBold
-			t.TextSize = 12
-			t.TextColor3 = Color3.new(1,1,1)
-			t.TextStrokeTransparency = 0.2
-		end
-	end
-	plr.CharacterAdded:Connect(attach)
-	if plr.Character then attach(plr.Character) end
-end
-
-for _,p in ipairs(Players:GetPlayers()) do AddESP(p) end
-Players.PlayerAdded:Connect(AddESP)
-
-CreateToggle(PlayerPage,"Player ESP",false,function(v)
-	State.ESP = v
-	for _,h in pairs(ESP) do if h then h.Enabled = v end end
-end)
-
-----------------------------------------------------------------
--- MOVEMENT
-----------------------------------------------------------------
-CreateToggle(PlayerPage,"Fly",false,function(v)
-	State.Fly = v
-	lp.Character.Humanoid.PlatformStand = v
-end)
-
-CreateToggle(PlayerPage,"Noclip",false,function(v)
-	State.Noclip = v
-end)
-
-CreateToggle(PlayerPage,"Infinite Jump",false,function(v)
-	State.InfJump = v
-end)
-
-UIS.JumpRequest:Connect(function()
-	if State.InfJump then
-		lp.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-	end
-end)
+CreateToggle(PlayerPage,"Player ESP",false,function(v) State.ESP = v end)
+CreateToggle(PlayerPage,"Fly",false,function(v) State.Fly = v end)
+CreateToggle(PlayerPage,"Noclip",false,function(v) State.Noclip = v end)
+CreateToggle(PlayerPage,"Infinite Jump",false,function(v) State.InfJump = v end)
 
 ----------------------------------------------------------------
 -- CORE LOOP
 ----------------------------------------------------------------
+UIS.JumpRequest:Connect(function()
+	if State.InfJump then
+		lp.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+	end
+end)
+
 RunService.Heartbeat:Connect(function(dt)
-	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+	local char = lp.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
 	if not hrp then return end
 
 	if State.Fly then
-		local dir = Vector3.zero
-		if UIS:IsKeyDown(Enum.KeyCode.W) then dir += cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.S) then dir -= cam.CFrame.LookVector end
-		if UIS:IsKeyDown(Enum.KeyCode.A) then dir -= cam.CFrame.RightVector end
-		if UIS:IsKeyDown(Enum.KeyCode.D) then dir += cam.CFrame.RightVector end
-		hrp.CFrame += dir * 120 * dt
+		local d = Vector3.zero
+		if UIS:IsKeyDown(Enum.KeyCode.W) then d += cam.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.S) then d -= cam.CFrame.LookVector end
+		if UIS:IsKeyDown(Enum.KeyCode.A) then d -= cam.CFrame.RightVector end
+		if UIS:IsKeyDown(Enum.KeyCode.D) then d += cam.CFrame.RightVector end
+		hrp.CFrame += d * 110 * dt
 	end
 
 	if State.Noclip then
-		for _,v in ipairs(lp.Character:GetDescendants()) do
+		for _,v in ipairs(char:GetDescendants()) do
 			if v:IsA("BasePart") then v.CanCollide = false end
 		end
 	end

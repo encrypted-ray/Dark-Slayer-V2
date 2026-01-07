@@ -1,4 +1,4 @@
--- DARK SLAYER V2 | MODERN REDZ-STYLE UI (FIXED + POLISHED)
+-- KRAKEN HUB | MODERN PURPLE UI (FULL FIXED VERSION)
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -9,13 +9,18 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
 
 local lp = Players.LocalPlayer
 repeat task.wait() until lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
 local cam = workspace.CurrentCamera
+
+----------------------------------------------------------------
+-- ACCENT COLORS
+----------------------------------------------------------------
+local ACCENT = Color3.fromRGB(155, 89, 255)
+local ACCENT_DARK = Color3.fromRGB(90, 55, 160)
 
 ----------------------------------------------------------------
 -- STATE
@@ -26,17 +31,13 @@ local State = {
 	Noclip = false,
 	InfJump = false,
 
-	-- Visuals
 	Fullbright = false,
 	NoFog = false,
 	HideUI = false,
 	FOV = false,
 
-	-- Gacha
 	AutoWinter = false,
-	StopWinterMyth = false,
 	AutoFruit = false,
-	StopFruitMyth = false,
 
 	FlySpeed = 120,
 	Minimized = false
@@ -45,15 +46,15 @@ local State = {
 ----------------------------------------------------------------
 -- CLEANUP
 ----------------------------------------------------------------
-if CoreGui:FindFirstChild("DarkSlayerModern") then
-	CoreGui.DarkSlayerModern:Destroy()
+if CoreGui:FindFirstChild("KrakenHub") then
+	CoreGui.KrakenHub:Destroy()
 end
 
 ----------------------------------------------------------------
 -- GUI ROOT
 ----------------------------------------------------------------
 local gui = Instance.new("ScreenGui", CoreGui)
-gui.Name = "DarkSlayerModern"
+gui.Name = "KrakenHub"
 gui.ResetOnSpawn = false
 
 local isMobile = UIS.TouchEnabled
@@ -61,13 +62,13 @@ local isMobile = UIS.TouchEnabled
 ----------------------------------------------------------------
 -- MAIN FRAME
 ----------------------------------------------------------------
-local MAIN_SIZE = isMobile and Vector2.new(360, 260) or Vector2.new(640, 400)
+local MAIN_SIZE = isMobile and Vector2.new(360,260) or Vector2.new(640,400)
 local TITLE_HEIGHT = 38
 
 local main = Instance.new("Frame", gui)
 main.Size = UDim2.fromOffset(MAIN_SIZE.X, MAIN_SIZE.Y)
-main.Position = UDim2.fromScale(0.5, 0.5)
-main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.Position = UDim2.fromScale(0.5,0.5)
+main.AnchorPoint = Vector2.new(0.5,0.5)
 main.BackgroundColor3 = Color3.fromRGB(18,18,18)
 main.BorderSizePixel = 0
 main.Active = true
@@ -86,33 +87,33 @@ local title = Instance.new("TextLabel", titleBar)
 title.Size = UDim2.new(1,-90,1,0)
 title.Position = UDim2.new(0,12,0,0)
 title.BackgroundTransparency = 1
-title.Text = "Dark Slayer V2"
+title.Text = "Kraken Hub"
 title.Font = Enum.Font.GothamMedium
 title.TextSize = 13
-title.TextColor3 = Color3.fromRGB(235,235,235)
+title.TextColor3 = ACCENT
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- MINIMIZE
+-- Minimize
 local minimize = Instance.new("TextButton", titleBar)
 minimize.Size = UDim2.fromOffset(26,22)
 minimize.Position = UDim2.new(1,-64,0.5,-11)
-minimize.Text = "—"
+minimize.Text = "-"
 minimize.Font = Enum.Font.GothamBold
-minimize.TextSize = 14
-minimize.TextColor3 = Color3.fromRGB(200,200,200)
+minimize.TextSize = 16
+minimize.TextColor3 = Color3.fromRGB(220,220,220)
 minimize.BackgroundColor3 = Color3.fromRGB(35,35,35)
 minimize.BorderSizePixel = 0
 Instance.new("UICorner", minimize)
 
--- CLOSE
+-- Close (FIXED)
 local close = Instance.new("TextButton", titleBar)
 close.Size = UDim2.fromOffset(26,22)
 close.Position = UDim2.new(1,-34,0.5,-11)
-close.Text = "✕"
+close.Text = "X"
 close.Font = Enum.Font.GothamBold
-close.TextSize = 14
-close.TextColor3 = Color3.fromRGB(255,90,90)
-close.BackgroundColor3 = Color3.fromRGB(35,35,35)
+close.TextSize = 15
+close.TextColor3 = Color3.new(1,1,1)
+close.BackgroundColor3 = Color3.fromRGB(90,40,40)
 close.BorderSizePixel = 0
 Instance.new("UICorner", close)
 
@@ -135,7 +136,7 @@ sideList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 sideList.VerticalAlignment = Enum.VerticalAlignment.Center
 
 ----------------------------------------------------------------
--- PAGES
+-- PAGES SYSTEM
 ----------------------------------------------------------------
 local pages = Instance.new("Frame", main)
 pages.Position = UDim2.fromOffset(120, TITLE_HEIGHT)
@@ -179,7 +180,7 @@ local function CreateTab(name)
 		for _,p in pairs(Pages) do p.Visible = false end
 		for _,t in pairs(Tabs) do t.BackgroundColor3 = Color3.fromRGB(30,30,30) end
 		Pages[name].Visible = true
-		b.BackgroundColor3 = Color3.fromRGB(45,45,45)
+		b.BackgroundColor3 = ACCENT_DARK
 	end)
 
 	Tabs[name] = b
@@ -189,7 +190,7 @@ end
 ----------------------------------------------------------------
 -- MODERN TOGGLE
 ----------------------------------------------------------------
-local function CreateToggle(parent, text, default, callback)
+local function CreateToggle(parent,text,default,callback)
 	local holder = Instance.new("Frame", parent)
 	holder.Size = UDim2.new(1,0,0,38)
 	holder.BackgroundColor3 = Color3.fromRGB(28,28,28)
@@ -209,7 +210,7 @@ local function CreateToggle(parent, text, default, callback)
 	local bg = Instance.new("Frame", holder)
 	bg.Size = UDim2.fromOffset(36,18)
 	bg.Position = UDim2.new(1,-48,0.5,-9)
-	bg.BackgroundColor3 = default and Color3.fromRGB(80,170,255) or Color3.fromRGB(70,70,70)
+	bg.BackgroundColor3 = default and ACCENT or Color3.fromRGB(70,70,70)
 	bg.BorderSizePixel = 0
 	Instance.new("UICorner", bg).CornerRadius = UDim.new(1,0)
 
@@ -221,11 +222,10 @@ local function CreateToggle(parent, text, default, callback)
 	Instance.new("UICorner", knob).CornerRadius = UDim.new(1,0)
 
 	local state = default
-
 	local function Set(v)
 		state = v
 		TweenService:Create(bg,TweenInfo.new(0.18),{
-			BackgroundColor3 = state and Color3.fromRGB(80,170,255) or Color3.fromRGB(70,70,70)
+			BackgroundColor3 = state and ACCENT or Color3.fromRGB(70,70,70)
 		}):Play()
 		TweenService:Create(knob,TweenInfo.new(0.18),{
 			Position = state and UDim2.new(1,-16,0.5,-7) or UDim2.new(0,2,0.5,-7)
@@ -254,10 +254,10 @@ CreateTab("Movement")
 CreateTab("Gacha")
 
 Pages.Visuals.Visible = true
-Tabs.Visuals.BackgroundColor3 = Color3.fromRGB(45,45,45)
+Tabs.Visuals.BackgroundColor3 = ACCENT_DARK
 
 ----------------------------------------------------------------
--- VISUALS (FIXED ESP)
+-- VISUALS
 ----------------------------------------------------------------
 local Highlights = {}
 
@@ -268,7 +268,7 @@ local function ApplyESP(player)
 		if Highlights[player] then Highlights[player]:Destroy() end
 		local h = Instance.new("Highlight")
 		h.Adornee = char
-		h.FillColor = Color3.fromRGB(255,80,80)
+		h.FillColor = ACCENT
 		h.OutlineColor = Color3.new(1,1,1)
 		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 		h.Enabled = State.ESP
@@ -285,29 +285,23 @@ Players.PlayerAdded:Connect(ApplyESP)
 
 CreateToggle(Visuals,"Player ESP",false,function(v)
 	State.ESP = v
-	for _,h in pairs(Highlights) do
-		if h then h.Enabled = v end
-	end
+	for _,h in pairs(Highlights) do if h then h.Enabled = v end end
 end)
 
 CreateToggle(Visuals,"Fullbright",false,function(v)
-	State.Fullbright = v
 	Lighting.Brightness = v and 3 or 1
 	Lighting.ClockTime = v and 14 or 12
 end)
 
 CreateToggle(Visuals,"Remove Fog",false,function(v)
-	State.NoFog = v
 	Lighting.FogEnd = v and 100000 or 1000
 end)
 
 CreateToggle(Visuals,"Custom FOV",false,function(v)
-	State.FOV = v
 	cam.FieldOfView = v and 90 or 70
 end)
 
 CreateToggle(Visuals,"Hide Roblox UI",false,function(v)
-	State.HideUI = v
 	pcall(function()
 		for _,ui in pairs(Enum.CoreGuiType:GetEnumItems()) do
 			CoreGui:SetCoreGuiEnabled(ui, not v)
@@ -338,7 +332,7 @@ UIS.JumpRequest:Connect(function()
 end)
 
 ----------------------------------------------------------------
--- GACHA (LOGIC KEPT CLEAN)
+-- GACHA
 ----------------------------------------------------------------
 CreateToggle(Gacha,"Auto Winter Gacha",false,function(v)
 	State.AutoWinter = v
@@ -349,16 +343,13 @@ CreateToggle(Gacha,"Auto Fruit Spin",false,function(v)
 end)
 
 ----------------------------------------------------------------
--- MINIMIZE ANIMATION
+-- MINIMIZE
 ----------------------------------------------------------------
 minimize.MouseButton1Click:Connect(function()
 	State.Minimized = not State.Minimized
-	local goal = State.Minimized
-		and UDim2.fromOffset(MAIN_SIZE.X, TITLE_HEIGHT)
-		or UDim2.fromOffset(MAIN_SIZE.X, MAIN_SIZE.Y)
-
 	TweenService:Create(main,TweenInfo.new(0.25,Enum.EasingStyle.Quad),{
-		Size = goal
+		Size = State.Minimized and UDim2.fromOffset(MAIN_SIZE.X,TITLE_HEIGHT)
+			or UDim2.fromOffset(MAIN_SIZE.X,MAIN_SIZE.Y)
 	}):Play()
 
 	sidebar.Visible = not State.Minimized

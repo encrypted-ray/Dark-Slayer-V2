@@ -30,6 +30,8 @@ local ESPConnections = {}
 local Gui = Instance.new("ScreenGui")
 Gui.Name = "ModernHub"
 Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Gui.IgnoreGuiInset = true
 Gui.Parent = PlayerGui
 
 --// MAIN FRAME
@@ -58,6 +60,9 @@ Title.Font = Enum.Font.GothamSemibold
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(235,235,235)
+Title.ZIndex = 10
+Title.TextStrokeTransparency = 0.5
+Title.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 
 --// CLOSE BUTTON
 local Close = Instance.new("TextButton", TitleBar)
@@ -69,6 +74,9 @@ Close.TextSize = 18
 Close.TextColor3 = Color3.fromRGB(255,255,255)
 Close.BackgroundColor3 = Color3.fromRGB(160,60,60)
 Close.AutoButtonColor = false
+Close.ZIndex = 10
+Close.TextStrokeTransparency = 0.5
+Close.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 Instance.new("UICorner", Close).CornerRadius = UDim.new(1,0)
 Close.MouseButton1Click:Connect(function()
 	Gui:Destroy()
@@ -84,6 +92,9 @@ Minimize.TextSize = 20
 Minimize.TextColor3 = Color3.fromRGB(255,255,255)
 Minimize.BackgroundColor3 = Color3.fromRGB(70,70,70)
 Minimize.AutoButtonColor = false
+Minimize.ZIndex = 10
+Minimize.TextStrokeTransparency = 0.5
+Minimize.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 Instance.new("UICorner", Minimize).CornerRadius = UDim.new(1,0)
 
 local Minimized = false
@@ -182,6 +193,9 @@ local function CreateTabButton(text, order, tabName)
 	btn.TextColor3 = Color3.fromRGB(230,230,230)
 	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
 	btn.AutoButtonColor = false
+	btn.ZIndex = 5
+	btn.TextStrokeTransparency = 0.5
+	btn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
 	btn.MouseButton1Click:Connect(function()
 		SwitchTab(tabName)
@@ -206,7 +220,9 @@ local function CreateToggle(parent, text, posY, callback)
 	label.TextSize = 14
 	label.TextColor3 = Color3.fromRGB(235,235,235)
 	label.TextXAlignment = Enum.TextXAlignment.Left
-	label.ZIndex = 5
+	label.ZIndex = 6
+	label.TextStrokeTransparency = 0.5
+	label.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 
 	local toggle = Instance.new("TextButton", holder)
 	toggle.Size = UDim2.fromScale(0.2,0.6)
@@ -217,7 +233,9 @@ local function CreateToggle(parent, text, posY, callback)
 	toggle.TextColor3 = Color3.fromRGB(255,255,255)
 	toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
 	toggle.AutoButtonColor = false
-	toggle.ZIndex = 5
+	toggle.ZIndex = 6
+	toggle.TextStrokeTransparency = 0.5
+	toggle.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 	Instance.new("UICorner", toggle).CornerRadius = UDim.new(1,0)
 
 	toggle.MouseButton1Click:Connect(function()

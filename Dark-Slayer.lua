@@ -21,6 +21,8 @@ local Gui = Instance.new("ScreenGui")
 Gui.Name = "GachaRoller"
 Gui.ResetOnSpawn = false
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Gui.IgnoreGuiInset = true
+Gui.DisplayOrder = 100
 Gui.Parent = PlayerGui
 
 --// MAIN FRAME
@@ -50,7 +52,16 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.TextStrokeTransparency = 0.5
+Title.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 Title.ZIndex = 10
+
+--// CONTENT (must be created before elements that use it)
+local Content = Instance.new("Frame", Main)
+Content.Position = UDim2.fromScale(0, 0.25)
+Content.Size = UDim2.fromScale(1, 0.75)
+Content.BackgroundTransparency = 1
+Content.ZIndex = 3
 
 -- Gacha Type Selector
 local GachaTypeLabel = Instance.new("TextLabel", Content)
@@ -60,7 +71,9 @@ GachaTypeLabel.BackgroundTransparency = 1
 GachaTypeLabel.Text = "Gacha Type:"
 GachaTypeLabel.Font = Enum.Font.Gotham
 GachaTypeLabel.TextSize = 12
-GachaTypeLabel.TextColor3 = Color3.fromRGB(200,200,200)
+GachaTypeLabel.TextColor3 = Color3.fromRGB(255,255,255)
+GachaTypeLabel.TextStrokeTransparency = 0.5
+GachaTypeLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 GachaTypeLabel.TextXAlignment = Enum.TextXAlignment.Left
 GachaTypeLabel.ZIndex = 4
 
@@ -71,6 +84,8 @@ GachaTypeBtn.Text = "Regular (Mythical)"
 GachaTypeBtn.Font = Enum.Font.Gotham
 GachaTypeBtn.TextSize = 12
 GachaTypeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+GachaTypeBtn.TextStrokeTransparency = 0.3
+GachaTypeBtn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 GachaTypeBtn.BackgroundColor3 = Color3.fromRGB(50,150,200)
 GachaTypeBtn.AutoButtonColor = false
 GachaTypeBtn.ZIndex = 4
@@ -97,6 +112,8 @@ Close.Text = "✕"
 Close.Font = Enum.Font.GothamBold
 Close.TextSize = 18
 Close.TextColor3 = Color3.fromRGB(255,255,255)
+Close.TextStrokeTransparency = 0.3
+Close.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 Close.BackgroundColor3 = Color3.fromRGB(200,50,50)
 Close.AutoButtonColor = false
 Close.ZIndex = 10
@@ -105,13 +122,6 @@ Close.MouseButton1Click:Connect(function()
 	Gui:Destroy()
 end)
 
---// CONTENT
-local Content = Instance.new("Frame", Main)
-Content.Position = UDim2.fromScale(0, 0.25)
-Content.Size = UDim2.fromScale(1, 0.75)
-Content.BackgroundTransparency = 1
-Content.ZIndex = 3
-
 local StatusLabel = Instance.new("TextLabel", Content)
 StatusLabel.Size = UDim2.fromScale(0.9, 0.3)
 StatusLabel.Position = UDim2.fromScale(0.05, 0.1)
@@ -119,7 +129,9 @@ StatusLabel.BackgroundTransparency = 1
 StatusLabel.Text = "Status: Ready"
 StatusLabel.Font = Enum.Font.Gotham
 StatusLabel.TextSize = 14
-StatusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+StatusLabel.TextColor3 = Color3.fromRGB(255,255,255)
+StatusLabel.TextStrokeTransparency = 0.5
+StatusLabel.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 StatusLabel.ZIndex = 4
 
@@ -130,6 +142,8 @@ ToggleBtn.Text = "Start Rolling"
 ToggleBtn.Font = Enum.Font.GothamBold
 ToggleBtn.TextSize = 14
 ToggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+ToggleBtn.TextStrokeTransparency = 0.3
+ToggleBtn.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(50,200,100)
 ToggleBtn.AutoButtonColor = false
 ToggleBtn.ZIndex = 4

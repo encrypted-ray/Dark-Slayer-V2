@@ -1,4 +1,4 @@
--- DARK SLAYER V2 | REDZ HUB STYLE | FULLY FIXED
+-- DARK SLAYER V2 | REDZ HUB STYLE | TOGGLE EDITION
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -10,6 +10,7 @@ local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local lp = Players.LocalPlayer
 repeat task.wait() until lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
@@ -22,10 +23,10 @@ local State = {
 	InfJump = false,
 	ESP = false,
 	Frozen = false,
-	FlySpeed = 120,
-	FrozenCFrame = nil,
 	AutoWinter = false,
 	StopMyth = false,
+	FlySpeed = 120,
+	FrozenCFrame = nil,
 	CandyCost = 100
 }
 
@@ -43,9 +44,9 @@ local isMobile = UIS.TouchEnabled
 
 -- MAIN FRAME
 local main = Instance.new("Frame", gui)
-main.Size = isMobile and UDim2.fromOffset(380, 270) or UDim2.fromOffset(640, 400)
-main.Position = UDim2.fromScale(0.5, 0.5)
-main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.Size = isMobile and UDim2.fromOffset(380,270) or UDim2.fromOffset(640,400)
+main.Position = UDim2.fromScale(0.5,0.5)
+main.AnchorPoint = Vector2.new(0.5,0.5)
 main.BackgroundColor3 = Color3.fromRGB(16,16,16)
 main.BorderSizePixel = 0
 main.Active = true
@@ -71,8 +72,8 @@ title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 local close = Instance.new("TextButton", titleBar)
-close.Size = UDim2.fromOffset(32,24)
-close.Position = UDim2.new(1,-38,0.5,-12)
+close.Size = UDim2.fromOffset(30,22)
+close.Position = UDim2.new(1,-36,0.5,-11)
 close.Text = "✕"
 close.Font = Enum.Font.GothamBold
 close.TextSize = 14
@@ -115,7 +116,7 @@ local function CreatePage(name)
 	scroll.Size = UDim2.fromScale(1,1)
 	scroll.CanvasSize = UDim2.new(0,0,0,0)
 	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	scroll.ScrollBarImageTransparency = 0.6
+	scroll.ScrollBarImageTransparency = 0.7
 	scroll.BackgroundTransparency = 1
 	scroll.Visible = false
 
@@ -125,7 +126,7 @@ local function CreatePage(name)
 	pad.PaddingRight = UDim.new(0,12)
 
 	local list = Instance.new("UIListLayout", scroll)
-	list.Padding = UDim.new(0,10)
+	list.Padding = UDim.new(0,12)
 
 	Pages[name] = scroll
 	return scroll
@@ -143,7 +144,7 @@ local function CreateTab(name)
 	Instance.new("UICorner", b)
 
 	b.MouseButton1Click:Connect(function()
-		for n,p in pairs(Pages) do p.Visible = false end
+		for _,p in pairs(Pages) do p.Visible = false end
 		for _,t in pairs(Tabs) do t.BackgroundColor3 = Color3.fromRGB(30,30,30) end
 		Pages[name].Visible = true
 		b.BackgroundColor3 = Color3.fromRGB(45,45,45)
@@ -153,21 +154,64 @@ local function CreateTab(name)
 	return b
 end
 
-local function ToggleButton(parent, label, color)
-	local b = Instance.new("TextButton", parent)
-	b.Size = UDim2.new(1,0,0,38)
-	b.Text = label
-	b.Font = Enum.Font.GothamMedium
-	b.TextSize = 13
-	b.TextColor3 = Color3.new(1,1,1)
-	b.BackgroundColor3 = color or Color3.fromRGB(35,35,35)
-	b.BorderSizePixel = 0
-	Instance.new("UICorner", b)
-	return b
+----------------------------------------------------------------
+-- TOGGLE CREATOR (REDZ STYLE)
+----------------------------------------------------------------
+local function CreateToggle(parent, text, default, callback)
+	local holder = Instance.new("Frame", parent)
+	holder.Size = UDim2.new(1,0,0,42)
+	holder.BackgroundColor3 = Color3.fromRGB(30,30,30)
+	holder.BorderSizePixel = 0
+	Instance.new("UICorner", holder)
+
+	local label = Instance.new("TextLabel", holder)
+	label.Size = UDim2.new(1,-60,1,0)
+	label.Position = UDim2.new(0,12,0,0)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.Font = Enum.Font.GothamMedium
+	label.TextSize = 13
+	label.TextColor3 = Color3.new(1,1,1)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	local toggleBg = Instance.new("Frame", holder)
+	toggleBg.Size = UDim2.fromOffset(40,20)
+	toggleBg.Position = UDim2.new(1,-52,0.5,-10)
+	toggleBg.BackgroundColor3 = default and Color3.fromRGB(60,160,255) or Color3.fromRGB(60,60,60)
+	toggleBg.BorderSizePixel = 0
+	Instance.new("UICorner", toggleBg).CornerRadius = UDim.new(1,0)
+
+	local knob = Instance.new("Frame", toggleBg)
+	knob.Size = UDim2.fromOffset(16,16)
+	knob.Position = default and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
+	knob.BackgroundColor3 = Color3.new(1,1,1)
+	knob.BorderSizePixel = 0
+	Instance.new("UICorner", knob).CornerRadius = UDim.new(1,0)
+
+	local state = default
+
+	local function Set(val)
+		state = val
+		TweenService:Create(toggleBg,TweenInfo.new(0.2),{
+			BackgroundColor3 = state and Color3.fromRGB(60,160,255) or Color3.fromRGB(60,60,60)
+		}):Play()
+		TweenService:Create(knob,TweenInfo.new(0.2),{
+			Position = state and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8)
+		}):Play()
+		if callback then callback(state) end
+	end
+
+	holder.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			Set(not state)
+		end
+	end)
+
+	return Set
 end
 
 ----------------------------------------------------------------
--- CREATE PAGES & TABS
+-- CREATE PAGES
 ----------------------------------------------------------------
 local ESPPage = CreatePage("ESP")
 local MovePage = CreatePage("Movement")
@@ -192,7 +236,7 @@ local function ApplyESP(player)
 	local function onChar(char)
 		if Highlights[player] then Highlights[player]:Destroy() end
 		local h = Instance.new("Highlight")
-		h.FillColor = Color3.fromRGB(255,70,70)
+		h.FillColor = Color3.fromRGB(255,80,80)
 		h.OutlineColor = Color3.new(1,1,1)
 		h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 		h.Enabled = State.ESP
@@ -207,41 +251,29 @@ end
 for _,p in ipairs(Players:GetPlayers()) do ApplyESP(p) end
 Players.PlayerAdded:Connect(ApplyESP)
 
-local espBtn = ToggleButton(ESPPage,"ESP : OFF",Color3.fromRGB(120,40,40))
-espBtn.MouseButton1Click:Connect(function()
-	State.ESP = not State.ESP
-	espBtn.Text = "ESP : "..(State.ESP and "ON" or "OFF")
-	for _,h in pairs(Highlights) do if h then h.Enabled = State.ESP end end
+CreateToggle(ESPPage,"Player ESP",false,function(v)
+	State.ESP = v
+	for _,h in pairs(Highlights) do if h then h.Enabled = v end end
 end)
 
 ----------------------------------------------------------------
 -- MOVEMENT
 ----------------------------------------------------------------
-local flyBtn = ToggleButton(MovePage,"FLY : OFF")
-local noclipBtn = ToggleButton(MovePage,"NOCLIP : OFF")
-local jumpBtn = ToggleButton(MovePage,"INF JUMP : OFF")
-local speedBtn = ToggleButton(MovePage,"SPEED : OFF")
-
-flyBtn.MouseButton1Click:Connect(function()
-	State.Fly = not State.Fly
-	flyBtn.Text = "FLY : "..(State.Fly and "ON" or "OFF")
-	lp.Character.Humanoid.PlatformStand = State.Fly
+CreateToggle(MovePage,"Fly",false,function(v)
+	State.Fly = v
+	lp.Character.Humanoid.PlatformStand = v
 end)
 
-noclipBtn.MouseButton1Click:Connect(function()
-	State.Noclip = not State.Noclip
-	noclipBtn.Text = "NOCLIP : "..(State.Noclip and "ON" or "OFF")
+CreateToggle(MovePage,"Noclip",false,function(v)
+	State.Noclip = v
 end)
 
-jumpBtn.MouseButton1Click:Connect(function()
-	State.InfJump = not State.InfJump
-	jumpBtn.Text = "INF JUMP : "..(State.InfJump and "ON" or "OFF")
+CreateToggle(MovePage,"Infinite Jump",false,function(v)
+	State.InfJump = v
 end)
 
-speedBtn.MouseButton1Click:Connect(function()
-	local hum = lp.Character.Humanoid
-	hum.WalkSpeed = hum.WalkSpeed == 16 and 100 or 16
-	speedBtn.Text = "SPEED : "..(hum.WalkSpeed > 16 and "ON" or "OFF")
+CreateToggle(MovePage,"Speed Boost",false,function(v)
+	lp.Character.Humanoid.WalkSpeed = v and 100 or 16
 end)
 
 UIS.JumpRequest:Connect(function()
@@ -253,40 +285,20 @@ end)
 ----------------------------------------------------------------
 -- UTILITY
 ----------------------------------------------------------------
-local freezeBtn = ToggleButton(UtilPage,"FREEZE : OFF",Color3.fromRGB(40,80,160))
-local hopBtn = ToggleButton(UtilPage,"SERVER HOP",Color3.fromRGB(140,60,60))
-
-freezeBtn.MouseButton1Click:Connect(function()
-	State.Frozen = not State.Frozen
-	State.FrozenCFrame = State.Frozen and lp.Character.HumanoidRootPart.CFrame or nil
-	freezeBtn.Text = "FREEZE : "..(State.Frozen and "ON" or "OFF")
-end)
-
-hopBtn.MouseButton1Click:Connect(function()
-	local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?limit=100"
-	local servers = HttpService:JSONDecode(game:HttpGet(url)).data
-	for _,v in pairs(servers) do
-		if v.playing < v.maxPlayers and v.id ~= game.JobId then
-			TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id)
-			break
-		end
-	end
+CreateToggle(UtilPage,"Freeze Character",false,function(v)
+	State.Frozen = v
+	State.FrozenCFrame = v and lp.Character.HumanoidRootPart.CFrame or nil
 end)
 
 ----------------------------------------------------------------
--- GACHA (SAFE)
+-- GACHA
 ----------------------------------------------------------------
-local autoBtn = ToggleButton(GachaPage,"AUTO WINTER : OFF",Color3.fromRGB(30,110,210))
-local mythBtn = ToggleButton(GachaPage,"STOP ON MYTH : OFF",Color3.fromRGB(30,90,190))
-
-autoBtn.MouseButton1Click:Connect(function()
-	State.AutoWinter = not State.AutoWinter
-	autoBtn.Text = "AUTO WINTER : "..(State.AutoWinter and "ON" or "OFF")
+CreateToggle(GachaPage,"Auto Winter Gacha",false,function(v)
+	State.AutoWinter = v
 end)
 
-mythBtn.MouseButton1Click:Connect(function()
-	State.StopMyth = not State.StopMyth
-	mythBtn.Text = "STOP ON MYTH : "..(State.StopMyth and "ON" or "OFF")
+CreateToggle(GachaPage,"Stop On Mythic",false,function(v)
+	State.StopMyth = v
 end)
 
 task.spawn(function()
